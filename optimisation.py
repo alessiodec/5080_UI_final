@@ -1,6 +1,9 @@
 import streamlit as st
 from functions.optimisation_functions import minimise_cr
 
+# Reset the dataset choice whenever this page is loaded.
+st.session_state["dataset_choice"] = None
+
 # Initialize session state for optimisation navigation if not already set.
 if "optimisation_page" not in st.session_state:
     st.session_state["optimisation_page"] = "optimisation"
