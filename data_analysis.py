@@ -25,7 +25,6 @@ def safe_rerun():
 
 def main_menu():
     st.title("Data Analysis")
-    st.write("This section gives detailled statiscial analysis of the dataset and shows relationships between inputs & outputs")
     st.write("Select an analysis category:")
     # Display two buttons side by side using columns.
     col1, col2 = st.columns(2)
@@ -40,7 +39,6 @@ def main_menu():
 
 def statistical_analysis_menu():
     st.title("Statistical Analysis")
-    st.write("Select an Option:")
     if st.button("Descriptive Analysis"):
         st.session_state["data_analysis_page"] = "descriptive_analysis"
         safe_rerun()
@@ -56,7 +54,6 @@ def statistical_analysis_menu():
 
 def contour_plots_menu():
     st.title("Contour Plots")
-    st.write("5x5 grid contour plots showing the relationship between any 2 inputs against CR // SR. All other inputs are set to their median value.")
     if st.button("Corrosion Rate"):
         st.session_state["data_analysis_page"] = "corrosion_rate"
         safe_rerun()
@@ -69,7 +66,6 @@ def contour_plots_menu():
 
 def descriptive_analysis_page():
     st.title("Descriptive Analysis")
-    st.write("General statistical analysis of the dataset as a whole")
     df, X, scaler_X = load_preprocess_data()
     descriptive_analysis(X)
     if st.button("Go Back"):
@@ -78,7 +74,6 @@ def descriptive_analysis_page():
 
 def pca_page():
     st.title("Principal Component Analysis (PCA)")
-    st.write("PCA Analysis for the dataset")
     explained_variance = pca_plot()
     st.write("Explained Variance Ratios:", explained_variance)
     if st.button("Go Back"):
@@ -87,7 +82,6 @@ def pca_page():
 
 def input_histograms_page():
     st.title("Input Histograms")
-    st.write("Histograms of Inputs (not very helpful)")
     input_histogram()
     if st.button("Go Back"):
         st.session_state["data_analysis_page"] = "main"
