@@ -7,8 +7,8 @@ import time
 import matplotlib.pyplot as plt
 import streamlit as st
 
-from . import Engine
-from . import config
+from .physical_relationship_analysis_files import Engine
+from .physical_relationship_analysis_files import config
 
 # Get absolute path to the data file
 def get_data_path(filename):
