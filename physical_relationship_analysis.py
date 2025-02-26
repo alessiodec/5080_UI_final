@@ -16,12 +16,12 @@ def main_menu():
     with col1:
         if st.button("Load Heatsink Data"):
             st.session_state["physical_relationship_page"] = "load_data"
-    # Only show "Run Heatsink Analysis" if the data has been loaded.
+    # Show "Run Heatsink Analysis" only if the data has been loaded.
     if st.session_state.get("heatsink_data_loaded", False):
         with col2:
             if st.button("Run Heatsink Analysis"):
                 st.session_state["physical_relationship_page"] = "run_analysis"
-    # Only show "Run Heatsink Evolution" if an analysis has been run.
+    # Show "Run Heatsink Evolution" only if an analysis has been run.
     if st.session_state.get("analysis_run", False):
         with col3:
             if st.button("Run Heatsink Evolution"):
@@ -34,11 +34,12 @@ def load_data_page():
     try:
         df, X, y, standardised_y, mean_y, std_y = load_heatsink_data(display_output=True)
         st.session_state["heatsink_data"] = (df, X, y, standardised_y, mean_y, std_y)
-        st.session_state["heatsink_data_loaded"] = True  # Set flag indicating data is loaded.
+        st.session_state["heatsink_data_loaded"] = True  # Flag to indicate data is loaded.
         st.success("Heatsink data loaded and stored in session state.")
     except Exception as e:
         st.error(f"Error loading heatsink data: {e}")
-    if st.button("Go Back"):
+    # Instead of waiting for the user to click "Go Back", you can offer a "Return to Main Menu" button.
+    if st.button("Return to Main Menu"):
         st.session_state["physical_relationship_page"] = "main"
 
 def run_analysis_page():
@@ -50,10 +51,10 @@ def run_analysis_page():
     if st.button("Run Analysis"):
         try:
             run_heatsink_analysis(pop_size, pop_retention, num_iterations)
-            st.session_state["analysis_run"] = True  # Set flag after analysis runs.
+            st.session_state["analysis_run"] = True  # Flag after analysis runs.
         except Exception as e:
             st.error(f"Error running heatsink analysis: {e}")
-    if st.button("Go Back"):
+    if st.button("Return to Main Menu"):
         st.session_state["physical_relationship_page"] = "main"
 
 def run_evolution_page():
@@ -64,7 +65,7 @@ def run_evolution_page():
             run_heatsink_evolution(num_iterations)
         except Exception as e:
             st.error(f"Error running evolution process: {e}")
-    if st.button("Go Back"):
+    if st.button("Return to Main Menu"):
         st.session_state["physical_relationship_page"] = "main"
 
 def run():
