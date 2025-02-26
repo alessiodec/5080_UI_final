@@ -5,7 +5,7 @@ from functions.physical_relationship_analysis_functions import (
     run_heatsink_evolution
 )
 
-# Initialize necessary session state variables if not already set.
+# Initialize session state variables if not already set.
 if "physical_relationship_page" not in st.session_state:
     st.session_state["physical_relationship_page"] = "main"
 if "heatsink_data_loaded" not in st.session_state:
@@ -19,7 +19,7 @@ def main_menu():
     # Always show the "Load Heatsink Data" button.
     if st.button("Load Heatsink Data"):
         st.session_state["physical_relationship_page"] = "load_data"
-    # Show "Run Heatsink Analysis" only if the data has been loaded.
+    # Show "Run Heatsink Analysis" only if data has been loaded.
     if st.session_state["heatsink_data_loaded"]:
         if st.button("Run Heatsink Analysis"):
             st.session_state["physical_relationship_page"] = "run_analysis"
@@ -35,11 +35,10 @@ def load_data_page():
     try:
         df, X, y, standardised_y, mean_y, std_y = load_heatsink_data(display_output=True)
         st.session_state["heatsink_data"] = (df, X, y, standardised_y, mean_y, std_y)
-        st.session_state["heatsink_data_loaded"] = True  # Mark that data is loaded.
+        st.session_state["heatsink_data_loaded"] = True
         st.success("Heatsink data loaded successfully.")
     except Exception as e:
         st.error(f"Error loading heatsink data: {e}")
-    # Allow user to return to main menu.
     if st.button("Return to Main Menu"):
         st.session_state["physical_relationship_page"] = "main"
 
@@ -55,7 +54,7 @@ def run_analysis_page():
             try:
                 run_heatsink_analysis(pop_size, pop_retention, num_iterations)
                 st.success("Heatsink analysis completed successfully.")
-                st.session_state["analysis_done"] = True  # Mark that analysis has run.
+                st.session_state["analysis_done"] = True
             except Exception as e:
                 st.error(f"Error running heatsink analysis: {e}")
     if st.button("Return to Main Menu"):
