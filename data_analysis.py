@@ -16,10 +16,14 @@ if "data_analysis_page" not in st.session_state:
 def main_menu():
     st.title("Data Analysis")
     st.write("Select an analysis category:")
-    if st.button("Statistical Analysis"):
-        st.session_state.data_analysis_page = "statistical_analysis"
-    if st.button("Contour Plots"):
-        st.session_state.data_analysis_page = "contour_plots"
+    # Display two buttons side by side using columns.
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Statistical Analysis"):
+            st.session_state.data_analysis_page = "statistical_analysis"
+    with col2:
+        if st.button("Contour Plots"):
+            st.session_state.data_analysis_page = "contour_plots"
 
 def statistical_analysis_menu():
     st.title("Statistical Analysis")
@@ -83,7 +87,7 @@ def saturation_ratio_page():
     if st.button("Go Back"):
         st.session_state.data_analysis_page = "contour_plots"
 
-# Wrap the navigation in a function called data_analysis()
+# Wrap the navigation logic in a function
 def data_analysis():
     page = st.session_state.data_analysis_page
 
@@ -104,6 +108,6 @@ def data_analysis():
     elif page == "saturation_ratio":
         saturation_ratio_page()
 
-# For local testing, run the app if this file is executed directly.
+# For local testing
 if __name__ == "__main__":
     data_analysis()
