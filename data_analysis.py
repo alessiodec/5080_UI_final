@@ -25,7 +25,7 @@ def safe_rerun():
 
 def main_menu():
     st.title("Data Analysis")
-    st.write("**Section Description:** [Placeholder for a description of the Data Analysis section.]")
+    st.write("heyyy")
     st.write("Select an analysis category:")
     # Display two buttons side by side using columns.
     col1, col2 = st.columns(2)
