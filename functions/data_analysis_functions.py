@@ -8,17 +8,15 @@ import seaborn as sns
 from sklearn.decomposition import PCA
 
 def load_models():
-    # Load the models (ensure the model files exist at these paths)
+    # Load models from the 'models' folder in the main repo
     cr_model = load_model("models/CorrosionRateModel.keras")
     sr_model = load_model("models/SaturationRateModel.keras")
     return cr_model, sr_model
 
 def descriptive_analysis(X):
     st.write("Descriptive Statistics:")
-    # Ensure X is a pandas DataFrame
     if not isinstance(X, pd.DataFrame):
         X = pd.DataFrame(X)
-    # If the DataFrame's columns are numeric, assign desired column names.
     if all(isinstance(col, int) for col in X.columns):
         col_names = ['pH', 'T (C)', 'log10 PCO2 (bar)', 'log10 v (ms-1)', 'log10 d']
         if X.shape[1] >= 5:
@@ -31,7 +29,7 @@ def descriptive_analysis(X):
 def input_histogram():
     csv_url = "https://drive.google.com/uc?export=download&id=10GtBpEkWIp4J-miPzQrLIH6AWrMrLH-o"
     df = pd.read_csv(csv_url)
-    cols_to_keep = list(range(0, 5))  # pH, T, PCO2, v, d
+    cols_to_keep = list(range(0, 5))
     df_subset = df.iloc[:, cols_to_keep].copy()
     df_subset.iloc[:, [2, 3, 4]] = np.log10(df_subset.iloc[:, [2, 3, 4]].replace(0, np.nan))
     plt.figure(figsize=(12, 8))
@@ -70,10 +68,8 @@ def pca_plot():
         'cumulative_variance_ratio': np.cumsum(exp_var_ratio)
     }
     fig, axes = plt.subplots(1, 2, figsize=(15, 6))
-    axes[0].plot(range(1, len(results['explained_variance_ratio']) + 1),
-                 results['explained_variance_ratio'], 'bo-', label='Explained Variance')
-    axes[0].plot(range(1, len(results['cumulative_variance_ratio']) + 1),
-                 results['cumulative_variance_ratio'], 'ro-', label='Cumulative Variance')
+    axes[0].plot(range(1, len(exp_var_ratio) + 1), exp_var_ratio, 'bo-', label='Explained Variance')
+    axes[0].plot(range(1, len(results['cumulative_variance_ratio']) + 1), results['cumulative_variance_ratio'], 'ro-', label='Cumulative Variance')
     axes[0].set_xlabel('Principal Component')
     axes[0].set_ylabel('Variance Ratio')
     axes[0].set_title('Scree Plot')
@@ -87,7 +83,7 @@ def pca_plot():
     axes[1].set_title('PCA Loadings Heatmap')
     st.pyplot(fig)
     explained_variance = {}
-    for i, var in enumerate(results['explained_variance_ratio']):
+    for i, var in enumerate(exp_var_ratio):
         explained_variance[f"PC{i+1}"] = {
             'explained_variance_ratio': var,
             'cumulative_variance_ratio': results['cumulative_variance_ratio'][i]
