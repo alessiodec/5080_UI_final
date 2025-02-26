@@ -11,7 +11,7 @@ from functions.data_analysis_functions import (
 
 # Initialize session state for navigation if not already set.
 if "data_analysis_page" not in st.session_state:
-    st.session_state.data_analysis_page = "main"
+    st.session_state["data_analysis_page"] = "main"
 
 def main_menu():
     st.title("Data Analysis")
@@ -20,32 +20,32 @@ def main_menu():
     col1, col2 = st.columns(2)
     with col1:
         if st.button("Statistical Analysis"):
-            st.session_state.data_analysis_page = "statistical_analysis"
+            st.session_state["data_analysis_page"] = "statistical_analysis"
     with col2:
         if st.button("Contour Plots"):
-            st.session_state.data_analysis_page = "contour_plots"
+            st.session_state["data_analysis_page"] = "contour_plots"
 
 def statistical_analysis_menu():
     st.title("Statistical Analysis")
     st.write("Select a statistical analysis option:")
     if st.button("Descriptive Analysis"):
-        st.session_state.data_analysis_page = "descriptive_analysis"
+        st.session_state["data_analysis_page"] = "descriptive_analysis"
     if st.button("PCA"):
-        st.session_state.data_analysis_page = "pca"
+        st.session_state["data_analysis_page"] = "pca"
     if st.button("Input Histograms"):
-        st.session_state.data_analysis_page = "input_histograms"
+        st.session_state["data_analysis_page"] = "input_histograms"
     if st.button("Go to Home"):
-        st.session_state.data_analysis_page = "main"
+        st.session_state["data_analysis_page"] = "main"
 
 def contour_plots_menu():
     st.title("Contour Plots")
     st.write("Select a contour plot option:")
     if st.button("Corrosion Rate"):
-        st.session_state.data_analysis_page = "corrosion_rate"
+        st.session_state["data_analysis_page"] = "corrosion_rate"
     if st.button("Saturation Ratio"):
-        st.session_state.data_analysis_page = "saturation_ratio"
+        st.session_state["data_analysis_page"] = "saturation_ratio"
     if st.button("Go to Home"):
-        st.session_state.data_analysis_page = "main"
+        st.session_state["data_analysis_page"] = "main"
 
 def descriptive_analysis_page():
     st.title("Descriptive Analysis")
@@ -54,20 +54,20 @@ def descriptive_analysis_page():
     # Call the descriptive analysis function
     descriptive_analysis(X)
     if st.button("Go Back"):
-        st.session_state.data_analysis_page = "statistical_analysis"
+        st.session_state["data_analysis_page"] = "statistical_analysis"
 
 def pca_page():
     st.title("Principal Component Analysis (PCA)")
     explained_variance = pca_plot()
     st.write("Explained Variance Ratios:", explained_variance)
     if st.button("Go Back"):
-        st.session_state.data_analysis_page = "statistical_analysis"
+        st.session_state["data_analysis_page"] = "statistical_analysis"
 
 def input_histograms_page():
     st.title("Input Histograms")
     input_histogram()
     if st.button("Go Back"):
-        st.session_state.data_analysis_page = "statistical_analysis"
+        st.session_state["data_analysis_page"] = "statistical_analysis"
 
 def corrosion_rate_page():
     st.title("Corrosion Rate Contour Plot")
@@ -76,7 +76,7 @@ def corrosion_rate_page():
     cr_model, _ = load_models()
     plot_5x5_cr(X, scaler_X, cr_model)
     if st.button("Go Back"):
-        st.session_state.data_analysis_page = "contour_plots"
+        st.session_state["data_analysis_page"] = "contour_plots"
 
 def saturation_ratio_page():
     st.title("Saturation Ratio Contour Plot")
@@ -85,11 +85,12 @@ def saturation_ratio_page():
     _, sr_model = load_models()
     plot_5x5_sr(X, scaler_X, sr_model)
     if st.button("Go Back"):
-        st.session_state.data_analysis_page = "contour_plots"
+        st.session_state["data_analysis_page"] = "contour_plots"
 
 # Wrap the navigation logic in a function
 def data_analysis():
-    page = st.session_state.data_analysis_page
+    # Safely get the current page (defaulting to "main" if missing)
+    page = st.session_state.get("data_analysis_page", "main")
 
     if page == "main":
         main_menu()
@@ -108,6 +109,6 @@ def data_analysis():
     elif page == "saturation_ratio":
         saturation_ratio_page()
 
-# For local testing
+# For local testing, run the app if this file is executed directly.
 if __name__ == "__main__":
     data_analysis()
