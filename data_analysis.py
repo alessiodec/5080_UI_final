@@ -9,6 +9,9 @@ from functions.data_analysis_functions import (
     load_models
 )
 
+# Reset the dataset choice whenever this page is loaded.
+st.session_state["dataset_choice"] = None
+
 # Initialize session state for navigation if not already set.
 if "data_analysis_page" not in st.session_state:
     st.session_state["data_analysis_page"] = "main"
