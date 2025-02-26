@@ -78,7 +78,6 @@ def pca_plot():
     axes[0].set_ylabel('Variance Ratio')
     axes[0].set_title('Scree Plot')
     axes[0].legend()
-    # Create a heatmap of PCA loadings
     loadings = results['loadings']
     features = pca_data.columns
     loadings_df = pd.DataFrame(loadings.T,
