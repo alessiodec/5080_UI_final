@@ -1,32 +1,25 @@
 import streamlit as st
 from functions.physical_relationship_analysis_functions import (
     load_heatsink_data,
-    run_heatsink_analysis,
-    run_heatsink_evolution
+    run_heatsink_analysis
 )
 
 # Initialize session state variables if not already set.
 if "physical_relationship_page" not in st.session_state:
-    st.session_state["physical_relationship_page"] = "main"
+    st.session_state["physical_relationship_page"] = "Main Menu"
 if "heatsink_data_loaded" not in st.session_state:
     st.session_state["heatsink_data_loaded"] = False
-if "analysis_done" not in st.session_state:
-    st.session_state["analysis_done"] = False
 
 def main_menu():
     st.title("Physical Relationship Analysis")
     st.write("Select an option:")
     # Always show the "Load Heatsink Data" button.
     if st.button("Load Heatsink Data"):
-        st.session_state["physical_relationship_page"] = "load_data"
+        st.session_state["physical_relationship_page"] = "Load Data"
     # Show "Run Heatsink Analysis" only if data has been loaded.
-    if st.session_state["heatsink_data_loaded"]:
+    if st.session_state.get("heatsink_data_loaded", False):
         if st.button("Run Heatsink Analysis"):
-            st.session_state["physical_relationship_page"] = "run_analysis"
-    # Show "Run Heatsink Evolution" only if analysis has been run.
-    if st.session_state["analysis_done"]:
-        if st.button("Run Heatsink Evolution"):
-            st.session_state["physical_relationship_page"] = "run_evolution"
+            st.session_state["physical_relationship_page"] = "Run Analysis"
     if st.button("Go to Home"):
         st.session_state["page"] = "main"
 
@@ -40,51 +33,36 @@ def load_data_page():
     except Exception as e:
         st.error(f"Error loading heatsink data: {e}")
     if st.button("Return to Main Menu"):
-        st.session_state["physical_relationship_page"] = "main"
+        st.session_state["physical_relationship_page"] = "Main Menu"
 
 def run_analysis_page():
     st.title("Run Heatsink Analysis")
+    st.write("Enter parameters for the analysis:")
     pop_size = st.number_input("Population Size:", min_value=10, value=200, step=10)
     pop_retention = st.number_input("Population Retention Size:", min_value=1, value=50, step=1)
     num_iterations = st.number_input("Number of Iterations:", min_value=1, value=10, step=1)
-    if st.button("Run Analysis"):
-        if not st.session_state["heatsink_data_loaded"]:
+    if st.button("Confirm Parameters"):
+        if not st.session_state.get("heatsink_data_loaded", False):
             st.error("Please load heatsink data first!")
         else:
             try:
                 run_heatsink_analysis(pop_size, pop_retention, num_iterations)
                 st.success("Heatsink analysis completed successfully.")
-                st.session_state["analysis_done"] = True
             except Exception as e:
                 st.error(f"Error running heatsink analysis: {e}")
     if st.button("Return to Main Menu"):
-        st.session_state["physical_relationship_page"] = "main"
-
-def run_evolution_page():
-    st.title("Run Heatsink Evolution")
-    num_iterations = st.number_input("Number of Iterations:", min_value=1, value=10, step=1)
-    if st.button("Run Evolution"):
-        if not st.session_state["analysis_done"]:
-            st.error("Please run heatsink analysis first!")
-        else:
-            try:
-                run_heatsink_evolution(num_iterations)
-                st.success("Heatsink evolution completed successfully.")
-            except Exception as e:
-                st.error(f"Error running evolution process: {e}")
-    if st.button("Return to Main Menu"):
-        st.session_state["physical_relationship_page"] = "main"
+        st.session_state["physical_relationship_page"] = "Main Menu"
 
 def main():
-    page = st.session_state.get("physical_relationship_page", "main")
-    if page == "main":
+    page = st.session_state.get("physical_relationship_page", "Main Menu")
+    if page == "Main Menu":
         main_menu()
-    elif page == "load_data":
+    elif page == "Load Data":
         load_data_page()
-    elif page == "run_analysis":
+    elif page == "Run Analysis":
         run_analysis_page()
-    elif page == "run_evolution":
-        run_evolution_page()
+    else:
+        st.write("Unknown page state.")
 
 def run():
     main()
