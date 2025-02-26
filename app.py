@@ -6,7 +6,7 @@ page = st.sidebar.radio("Go to", ["Home", "Data Analysis", "Optimisation", "Phys
 
 if page == "Data Analysis":
     import data_analysis
-    data_analysis.run()
+    data_analysis.data_analysis()
 elif page == "Optimisation":
     import optimisation
     optimisation.run()
