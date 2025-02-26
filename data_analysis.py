@@ -83,22 +83,27 @@ def saturation_ratio_page():
     if st.button("Go Back"):
         st.session_state.data_analysis_page = "contour_plots"
 
-# Navigation based on session state:
-page = st.session_state.data_analysis_page
+# Wrap the navigation in a function called data_analysis()
+def data_analysis():
+    page = st.session_state.data_analysis_page
 
-if page == "main":
-    main_menu()
-elif page == "statistical_analysis":
-    statistical_analysis_menu()
-elif page == "contour_plots":
-    contour_plots_menu()
-elif page == "descriptive_analysis":
-    descriptive_analysis_page()
-elif page == "pca":
-    pca_page()
-elif page == "input_histograms":
-    input_histograms_page()
-elif page == "corrosion_rate":
-    corrosion_rate_page()
-elif page == "saturation_ratio":
-    saturation_ratio_page()
+    if page == "main":
+        main_menu()
+    elif page == "statistical_analysis":
+        statistical_analysis_menu()
+    elif page == "contour_plots":
+        contour_plots_menu()
+    elif page == "descriptive_analysis":
+        descriptive_analysis_page()
+    elif page == "pca":
+        pca_page()
+    elif page == "input_histograms":
+        input_histograms_page()
+    elif page == "corrosion_rate":
+        corrosion_rate_page()
+    elif page == "saturation_ratio":
+        saturation_ratio_page()
+
+# For local testing, run the app if this file is executed directly.
+if __name__ == "__main__":
+    data_analysis()
