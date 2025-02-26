@@ -49,9 +49,7 @@ def contour_plots_menu():
 
 def descriptive_analysis_page():
     st.title("Descriptive Analysis")
-    # Load and preprocess the data
     df, X, scaler_X = load_preprocess_data()
-    # Call the descriptive analysis function
     descriptive_analysis(X)
     if st.button("Go Back"):
         st.session_state["data_analysis_page"] = "statistical_analysis"
@@ -71,25 +69,22 @@ def input_histograms_page():
 
 def corrosion_rate_page():
     st.title("Corrosion Rate Contour Plot")
-    # Load data and models necessary for the corrosion rate plot
     df, X, scaler_X = load_preprocess_data()
-    cr_model, _ = load_models()
+    cr_model, _ = load_models()  # loads from models/CorrosionRateModel.keras
     plot_5x5_cr(X, scaler_X, cr_model)
     if st.button("Go Back"):
         st.session_state["data_analysis_page"] = "contour_plots"
 
 def saturation_ratio_page():
     st.title("Saturation Ratio Contour Plot")
-    # Load data and models necessary for the saturation ratio plot
     df, X, scaler_X = load_preprocess_data()
-    _, sr_model = load_models()
+    _, sr_model = load_models()  # loads from models/SaturationRateModel.keras
     plot_5x5_sr(X, scaler_X, sr_model)
     if st.button("Go Back"):
         st.session_state["data_analysis_page"] = "contour_plots"
 
 # Wrap the navigation logic in a function
 def data_analysis():
-    # Safely get the current page (defaulting to "main" if missing)
     page = st.session_state.get("data_analysis_page", "main")
 
     if page == "main":
@@ -109,6 +104,5 @@ def data_analysis():
     elif page == "saturation_ratio":
         saturation_ratio_page()
 
-# For local testing, run the app if this file is executed directly.
 if __name__ == "__main__":
     data_analysis()
