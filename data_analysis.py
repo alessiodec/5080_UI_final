@@ -22,10 +22,10 @@ def safe_rerun():
             st.experimental_rerun()
         except Exception as e:
             st.error(f"Rerun failed: {e}")
-    # If not available, we rely on the natural rerun on state change.
 
 def main_menu():
     st.title("Data Analysis")
+    st.write("**Section Description:** [Placeholder for a description of the Data Analysis section.]")
     st.write("Select an analysis category:")
     # Display two buttons side by side using columns.
     col1, col2 = st.columns(2)
@@ -40,7 +40,7 @@ def main_menu():
 
 def statistical_analysis_menu():
     st.title("Statistical Analysis")
-    st.write("Select a statistical analysis option:")
+    st.write("**Description:** [Placeholder for descriptive text about statistical analysis options.]")
     if st.button("Descriptive Analysis"):
         st.session_state["data_analysis_page"] = "descriptive_analysis"
         safe_rerun()
@@ -56,7 +56,7 @@ def statistical_analysis_menu():
 
 def contour_plots_menu():
     st.title("Contour Plots")
-    st.write("Select a contour plot option:")
+    st.write("**Description:** [Placeholder for descriptive text about contour plots options.]")
     if st.button("Corrosion Rate"):
         st.session_state["data_analysis_page"] = "corrosion_rate"
         safe_rerun()
@@ -69,6 +69,7 @@ def contour_plots_menu():
 
 def descriptive_analysis_page():
     st.title("Descriptive Analysis")
+    st.write("**Description:** [Placeholder for descriptive text about the descriptive analysis process.]")
     df, X, scaler_X = load_preprocess_data()
     descriptive_analysis(X)
     if st.button("Go Back"):
@@ -77,6 +78,7 @@ def descriptive_analysis_page():
 
 def pca_page():
     st.title("Principal Component Analysis (PCA)")
+    st.write("**Description:** [Placeholder for descriptive text about PCA analysis.]")
     explained_variance = pca_plot()
     st.write("Explained Variance Ratios:", explained_variance)
     if st.button("Go Back"):
@@ -85,6 +87,7 @@ def pca_page():
 
 def input_histograms_page():
     st.title("Input Histograms")
+    st.write("**Description:** [Placeholder for descriptive text about input histogram generation.]")
     input_histogram()
     if st.button("Go Back"):
         st.session_state["data_analysis_page"] = "main"
@@ -92,6 +95,7 @@ def input_histograms_page():
 
 def corrosion_rate_page():
     st.title("Corrosion Rate Contour Plot")
+    st.write("**Description:** [Placeholder for descriptive text about the corrosion rate contour plot.]")
     df, X, scaler_X = load_preprocess_data()
     cr_model, _ = load_models()  # loads from models/CorrosionRateModel.keras
     plot_5x5_cr(X, scaler_X, cr_model)
@@ -101,6 +105,7 @@ def corrosion_rate_page():
 
 def saturation_ratio_page():
     st.title("Saturation Ratio Contour Plot")
+    st.write("**Description:** [Placeholder for descriptive text about the saturation ratio contour plot.]")
     df, X, scaler_X = load_preprocess_data()
     _, sr_model = load_models()  # loads from models/SaturationRateModel.keras
     plot_5x5_sr(X, scaler_X, sr_model)
@@ -111,7 +116,6 @@ def saturation_ratio_page():
 # Wrap the navigation logic in a function
 def data_analysis():
     page = st.session_state.get("data_analysis_page", "main")
-
     if page == "main":
         main_menu()
     elif page == "statistical_analysis":
@@ -128,6 +132,8 @@ def data_analysis():
         corrosion_rate_page()
     elif page == "saturation_ratio":
         saturation_ratio_page()
+    else:
+        st.write("Unknown page state.")
 
 if __name__ == "__main__":
     data_analysis()
