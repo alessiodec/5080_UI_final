@@ -5,14 +5,14 @@ from functions.physical_relationship_analysis_functions import (
     run_heatsink_evolution
 )
 
-# Initialize the navigation state if not already set.
+# Initialize the navigation state for Physical Relationship Analysis if not already set.
 if "physical_relationship_page" not in st.session_state:
     st.session_state["physical_relationship_page"] = "main"
 
 def main_menu():
     st.title("Physical Relationship Analysis")
     st.write("Select an option:")
-    # Always show these three buttons
+    # Display the main options:
     if st.button("Load Heatsink Data"):
         st.session_state["physical_relationship_page"] = "load_data"
     if st.button("Run Heatsink Analysis"):
@@ -20,7 +20,7 @@ def main_menu():
     if st.button("Run Heatsink Evolution"):
         st.session_state["physical_relationship_page"] = "run_evolution"
     if st.button("Go to Home"):
-        st.session_state["page"] = "main"  # Assuming your main app uses this key
+        st.session_state["page"] = "main"  # Adjust as needed for your main app
 
 def load_data_page():
     st.title("Load Heatsink Data")
@@ -30,7 +30,6 @@ def load_data_page():
         st.success("Heatsink data loaded successfully.")
     except Exception as e:
         st.error(f"Error loading heatsink data: {e}")
-    # After loading, return to main menu
     if st.button("Return to Main Menu"):
         st.session_state["physical_relationship_page"] = "main"
 
@@ -78,5 +77,8 @@ def main():
     elif page == "run_evolution":
         run_evolution_page()
 
-if __name__ == "__main__":
+def run():
     main()
+
+if __name__ == "__main__":
+    run()
