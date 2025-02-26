@@ -28,8 +28,8 @@ YData = YData.dropna()
 # -------------------------------------------------------------------
 # Load pre-trained models
 # -------------------------------------------------------------------
-CorrosionModel = load_model("functions/alfie/CorrosionRateModel.keras")
-SaturationModel = load_model("functions/alfie/SaturationRateModel.keras")
+CorrosionModel = load_model("models/CorrosionRateModel.keras")
+SaturationModel = load_model("models/SaturationRateModel.keras")
 
 # -------------------------------------------------------------------
 # Create and fit a scaler on the input data (all 5 features)
