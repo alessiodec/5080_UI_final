@@ -1,7 +1,12 @@
-streamlit
-pandas
-matplotlib
 numpy
+matplotlib
+streamlit
+scikit-learn
+pandas
 tensorflow
-sklearn
+catboost
+gdown
 seaborn
+deap
+sympy
+pymoo
