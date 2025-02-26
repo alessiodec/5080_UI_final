@@ -51,21 +51,22 @@ def descriptive_analysis_page():
     st.title("Descriptive Analysis")
     df, X, scaler_X = load_preprocess_data()
     descriptive_analysis(X)
+    # Go back always returns to the main Data Analysis menu.
     if st.button("Go Back"):
-        st.session_state["data_analysis_page"] = "statistical_analysis"
+        st.session_state["data_analysis_page"] = "main"
 
 def pca_page():
     st.title("Principal Component Analysis (PCA)")
     explained_variance = pca_plot()
     st.write("Explained Variance Ratios:", explained_variance)
     if st.button("Go Back"):
-        st.session_state["data_analysis_page"] = "statistical_analysis"
+        st.session_state["data_analysis_page"] = "main"
 
 def input_histograms_page():
     st.title("Input Histograms")
     input_histogram()
     if st.button("Go Back"):
-        st.session_state["data_analysis_page"] = "statistical_analysis"
+        st.session_state["data_analysis_page"] = "main"
 
 def corrosion_rate_page():
     st.title("Corrosion Rate Contour Plot")
@@ -73,7 +74,7 @@ def corrosion_rate_page():
     cr_model, _ = load_models()  # loads from models/CorrosionRateModel.keras
     plot_5x5_cr(X, scaler_X, cr_model)
     if st.button("Go Back"):
-        st.session_state["data_analysis_page"] = "contour_plots"
+        st.session_state["data_analysis_page"] = "main"
 
 def saturation_ratio_page():
     st.title("Saturation Ratio Contour Plot")
@@ -81,7 +82,7 @@ def saturation_ratio_page():
     _, sr_model = load_models()  # loads from models/SaturationRateModel.keras
     plot_5x5_sr(X, scaler_X, sr_model)
     if st.button("Go Back"):
-        st.session_state["data_analysis_page"] = "contour_plots"
+        st.session_state["data_analysis_page"] = "main"
 
 # Wrap the navigation logic in a function
 def data_analysis():
