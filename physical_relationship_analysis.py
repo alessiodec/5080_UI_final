@@ -5,33 +5,51 @@ from functions.physical_relationship_analysis_functions import (
     run_heatsink_evolution
 )
 
-# Initialize the navigation state for Physical Relationship Analysis if not already set.
+# Initialize the navigation state if not already set.
 if "physical_relationship_page" not in st.session_state:
     st.session_state["physical_relationship_page"] = "main"
 
 def main_menu():
     st.title("Physical Relationship Analysis")
     st.write("Select an option:")
-    # Display the main options:
+    
+    # Always show the "Load Heatsink Data" button.
     if st.button("Load Heatsink Data"):
         st.session_state["physical_relationship_page"] = "load_data"
-    if st.button("Run Heatsink Analysis"):
-        st.session_state["physical_relationship_page"] = "run_analysis"
-    if st.button("Run Heatsink Evolution"):
-        st.session_state["physical_relationship_page"] = "run_evolution"
+        st.experimental_rerun()
+    
+    # Only show "Run Heatsink Analysis" if data has been loaded.
+    if st.session_state.get("heatsink_data_loaded", False):
+        if st.button("Run Heatsink Analysis"):
+            st.session_state["physical_relationship_page"] = "run_analysis"
+            st.experimental_rerun()
+    
+    # Only show "Run Heatsink Evolution" if analysis has been run.
+    if st.session_state.get("analysis_done", False):
+        if st.button("Run Heatsink Evolution"):
+            st.session_state["physical_relationship_page"] = "run_evolution"
+            st.experimental_rerun()
+    
     if st.button("Go to Home"):
-        st.session_state["page"] = "main"  # Adjust as needed for your main app
+        st.session_state["page"] = "main"
+        st.experimental_rerun()
 
 def load_data_page():
     st.title("Load Heatsink Data")
     try:
         df, X, y, standardised_y, mean_y, std_y = load_heatsink_data(display_output=True)
         st.session_state["heatsink_data"] = (df, X, y, standardised_y, mean_y, std_y)
+        st.session_state["heatsink_data_loaded"] = True  # Flag to indicate data is loaded.
         st.success("Heatsink data loaded successfully.")
+        # Automatically return to the main menu.
+        st.session_state["physical_relationship_page"] = "main"
+        st.experimental_rerun()
     except Exception as e:
         st.error(f"Error loading heatsink data: {e}")
-    if st.button("Return to Main Menu"):
-        st.session_state["physical_relationship_page"] = "main"
+        # In case of error, offer a button to return.
+        if st.button("Return to Main Menu"):
+            st.session_state["physical_relationship_page"] = "main"
+            st.experimental_rerun()
 
 def run_analysis_page():
     st.title("Run Heatsink Analysis")
@@ -45,11 +63,12 @@ def run_analysis_page():
             try:
                 run_heatsink_analysis(pop_size, pop_retention, num_iterations)
                 st.success("Heatsink analysis completed successfully.")
-                st.session_state["analysis_done"] = True
+                st.session_state["analysis_done"] = True  # Flag after analysis runs.
             except Exception as e:
                 st.error(f"Error running heatsink analysis: {e}")
     if st.button("Return to Main Menu"):
         st.session_state["physical_relationship_page"] = "main"
+        st.experimental_rerun()
 
 def run_evolution_page():
     st.title("Run Heatsink Evolution")
@@ -65,6 +84,7 @@ def run_evolution_page():
                 st.error(f"Error running evolution process: {e}")
     if st.button("Return to Main Menu"):
         st.session_state["physical_relationship_page"] = "main"
+        st.experimental_rerun()
 
 def main():
     page = st.session_state.get("physical_relationship_page", "main")
