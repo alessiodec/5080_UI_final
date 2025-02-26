@@ -14,6 +14,7 @@ from .physical_relationship_analysis_files import config
 def get_data_path(filename):
     return os.path.join(os.path.dirname(__file__), "physical_relationship_analysis_files", filename)
 
+
 def load_heatsink_data(file_path=None, display_output=False):
     """
     Loads and processes the heatsink dataset.
