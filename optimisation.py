@@ -10,7 +10,12 @@ if "optimisation_page" not in st.session_state:
 
 def optimisation_menu():
     st.title("Optimisation")
-    st.write("Select an option:")
+    
+    st.write(""""
+    **Optimisation methods:**
+    Select desired diamater and CO2 pressure, minimise CR (SR <= 1)
+    """)
+    
     # Button to navigate to the minimisation page.
     if st.button("Minimise CR for Given d and PCO₂"):
         st.session_state["optimisation_page"] = "minimise_cr"
