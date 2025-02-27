@@ -105,7 +105,7 @@ def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
     st.write(f"✅ Population initialized in {time.time() - start_time:.2f} seconds")
 
     # Display a few individuals for reference
-    for i, individual in enumerate(init_population[:10]):
+    # for i, individual in enumerate(init_population[:10]):
         st.text(f"{i}: Fitness={individual.fitness:.4f}, Complexity={individual.complexity}, Eq={individual.individual}")
 
     Engine.evaluate_population(init_population)
@@ -148,7 +148,7 @@ def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
             iterations.append(i + 1)
 
             elapsed_time = time.time() - evolution_start
-            st.write(f"Iteration {i+1}: Best Fit={optimal_fitness:.8f}, Avg Fit={avg_fitness:.8f}, Elapsed Time={elapsed_time:.2f}s")
+            # st.write(f"Iteration {i+1}: Best Fit={optimal_fitness:.8f}, Avg Fit={avg_fitness:.8f}, Elapsed Time={elapsed_time:.2f}s")
 
             # Clear and update the plot dynamically
             fig, ax = plt.subplots(figsize=(8, 6))
@@ -165,6 +165,8 @@ def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
             time.sleep(0.1)
 
     st.success("✅ Heatsink Analysis Completed!")
+
+    st.write(f"Best Fit={optimal_fitness:.8f}")
 
 def run_heatsink_evolution(num_iterations):
     """
