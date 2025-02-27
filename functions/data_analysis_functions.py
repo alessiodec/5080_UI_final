@@ -83,12 +83,12 @@ def pca_plot():
     axes[1].set_title('PCA Loadings Heatmap')
     st.pyplot(fig)
     explained_variance = {}
-    # for i, var in enumerate(exp_var_ratio):
-    #    explained_variance[f"PC{i+1}"] = {
-    #        'explained_variance_ratio': var,
-    #        'cumulative_variance_ratio': results['cumulative_variance_ratio'][i]
-    #    }
-    return explained_variance
+     for i, var in enumerate(exp_var_ratio):
+        explained_variance[f"PC{i+1}"] = {
+            'explained_variance_ratio': var,
+            'cumulative_variance_ratio': results['cumulative_variance_ratio'][i]
+        }
+    # return explained_variance
 
 def plot_5x5_cr(X, scaler_X, cr_model):
     mid_points = np.median(X, axis=0)
