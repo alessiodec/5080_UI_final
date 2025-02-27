@@ -1,5 +1,5 @@
 import os
-import streamlit as st  # Only needed if you want to display using st.write
+import streamlit as st
 import numpy as np
 import pandas as pd
 import warnings
@@ -21,7 +21,7 @@ def load_heatsink_data(file_path=None, display_output=False):
     
     Parameters:
         file_path (str): Path to the dataset. If None, defaults to the file in the script directory.
-        display_output (bool): If True, displays the mean, std, and DataFrame via st.write.
+        display_output (bool): If True, displays mean, std, and DataFrame via st.write.
         
     Returns:
         df (DataFrame): The processed DataFrame.
@@ -55,13 +55,14 @@ def load_heatsink_data(file_path=None, display_output=False):
 
 def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
     """
-    Runs the heatsink analysis based on user-defined population parameters and number of iterations.
-    Uses a single persistent Matplotlib figure to update the plot in real time.
+    Runs the heatsink analysis in a stateful, iteration-by-iteration manner.
+    The evolution state is stored in st.session_state so that one iteration is processed per run.
+    After each iteration, st.experimental_rerun() is called to refresh the UI.
     
     Args:
         pop_size (int): The number of individuals in the population.
         pop_retention (int): The number of individuals retained after selection.
-        num_iterations (int): The number of iterations (generations) to run the evolution process.
+        num_iterations (int): Total number of iterations for the evolution process.
     """
     # Update configuration values
     config.POPULATION_SIZE = pop_size
@@ -76,149 +77,80 @@ def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
     df, X, y, standardised_y, mean_y, std_y = st.session_state["heatsink_data"]
     config.X, config.y = X, standardised_y
 
-    st.write("🚀 Initializing Population... This may take a moment.")
-    start_time = time.time()
-    with st.spinner("Generating initial population..."):
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", RuntimeWarning)
-            init_population = Engine.initialize_population(verbose=1)
-    st.write(f"✅ Population initialized in {time.time() - start_time:.2f} seconds")
+    # Initialize evolution state if not already initialized.
+    if "evolution_state" not in st.session_state:
+        st.write("🚀 Initializing Population... This may take a moment.")
+        with st.spinner("Generating initial population..."):
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", RuntimeWarning)
+                init_population = Engine.initialize_population(verbose=1)
+        st.session_state["evolution_state"] = {
+            "current_iter": 0,
+            "iterations": [],
+            "avg_fitness": [],
+            "avg_complexity": [],
+            "best_fitness": [],
+            "population": init_population,
+            "start_time": time.time()
+        }
+        st.write("✅ Population initialized.")
 
-    # Display a few individuals for reference
-    for i, individual in enumerate(init_population[:10]):
-        st.text(f"{i}: Fitness={individual.fitness:.4f}, Complexity={individual.complexity}, Eq={individual.individual}")
+    # Retrieve the evolution state.
+    evolution_state = st.session_state["evolution_state"]
+    current_iter = evolution_state["current_iter"]
+    chart_placeholder = st.empty()
 
-    Engine.evaluate_population(init_population)
+    if current_iter < num_iterations:
+        # Run one iteration.
+        pop = evolution_state["population"]
+        new_population = Engine.generate_new_population(population=pop.copy(), verbose=1)
+        avg_fit, avg_comp, best_fit = Engine.evaluate_population(new_population)
 
-    st.write("⚙️ Simplifying Population...")
-    start_time = time.time()
-    with st.spinner("Simplifying expressions..."):
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", RuntimeWarning)
-            simplified_pop = Engine.simplify_and_clean_population(init_population)
-    st.write(f"✅ Population simplified in {time.time() - start_time:.2f} seconds")
+        # Update state.
+        evolution_state["current_iter"] = current_iter + 1
+        evolution_state["iterations"].append(current_iter + 1)
+        evolution_state["avg_fitness"].append(avg_fit)
+        evolution_state["avg_complexity"].append(avg_comp)
+        evolution_state["best_fitness"].append(best_fit)
+        evolution_state["population"] = new_population
 
-    # ---- Evolution Loop with In-Place Graph Updates ----
-    st.write("📈 Running Evolution Process...")
-    chart_placeholder = st.empty()   # Placeholder for the plot
-    status_text = st.empty()         # Placeholder for iteration status
-    progress_bar = st.progress(0)    # Progress bar for UI updates
+        elapsed_time = time.time() - evolution_state["start_time"]
+        st.write(f"Iteration {current_iter+1}: Best Fit={best_fit:.8f}, Avg Fit={avg_fit:.8f}, Elapsed Time={elapsed_time:.2f}s")
 
-    # Initialize tracking arrays and population
-    avg_fitness_arr = []
-    avg_complexity_arr = []
-    best_fitness_arr = []
-    iterations = []
-    new_population = init_population.copy()
-    evolution_start = time.time()
+        # Create the plot based on the current evolution data.
+        fig, ax = plt.subplots(figsize=(8, 6))
+        ax.plot(evolution_state["iterations"], evolution_state["avg_fitness"], 'bo-', label="Avg Fitness")
+        ax.plot(evolution_state["iterations"], evolution_state["avg_complexity"], 'ro-', label="Complexity")
+        ax.plot(evolution_state["iterations"], evolution_state["best_fitness"], 'go-', label="Best Fitness")
+        ax.set_xlabel("Iteration")
+        ax.set_ylabel("Fitness - 1-$R^2$")
+        ax.set_yscale("log")
+        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+        ax.set_title("Population Metrics Over Iterations")
+        chart_placeholder.pyplot(fig)
 
-    # Create a single persistent figure and axis
-    fig, ax = plt.subplots(figsize=(8, 6))
-    line_avg, = ax.plot([], [], 'bo-', label="Avg Fitness")
-    line_complex, = ax.plot([], [], 'ro-', label="Complexity")
-    line_best, = ax.plot([], [], 'go-', label="Best Fitness")
-    ax.set_xlabel("Iteration")
-    ax.set_ylabel("Fitness - 1-$R^2$")
-    ax.set_yscale("log")
-    ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-    ax.set_title("Population Metrics Over Iterations")
-    chart_placeholder.pyplot(fig)
-
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", RuntimeWarning)
-        for i in range(num_iterations):
-            # Generate new population and evaluate metrics
-            new_population = Engine.generate_new_population(population=new_population.copy(), verbose=1)
-            avg_fitness, avg_complexity, optimal_fitness = Engine.evaluate_population(new_population)
-
-            iterations.append(i + 1)
-            avg_fitness_arr.append(avg_fitness)
-            avg_complexity_arr.append(avg_complexity)
-            best_fitness_arr.append(optimal_fitness)
-
-            elapsed_time = time.time() - evolution_start
-            status_text.text(f"Iteration {i+1}: Best Fit={optimal_fitness:.8f}, Avg Fit={avg_fitness:.8f}, Elapsed Time={elapsed_time:.2f}s")
-            progress_bar.progress((i + 1) / num_iterations)
-
-            # Update the data of the existing line objects
-            line_avg.set_data(iterations, avg_fitness_arr)
-            line_complex.set_data(iterations, avg_complexity_arr)
-            line_best.set_data(iterations, best_fitness_arr)
-
-            # Adjust axes limits and update the view
-            ax.relim()
-            ax.autoscale_view()
-
-            # Update the existing plot in the same placeholder
-            chart_placeholder.pyplot(fig)
-            # Attempt to flush the drawing events
-            plt.draw()
-            plt.pause(0.001)
-            time.sleep(0.1)
-
-    st.success("✅ Heatsink Analysis Completed!")
+        # Wait briefly then re-run to process the next iteration.
+        time.sleep(0.1)
+        st.experimental_rerun()
+    else:
+        st.success("✅ Evolution Completed!")
+        # Final plot.
+        fig, ax = plt.subplots(figsize=(8, 6))
+        ax.plot(evolution_state["iterations"], evolution_state["avg_fitness"], 'bo-', label="Avg Fitness")
+        ax.plot(evolution_state["iterations"], evolution_state["avg_complexity"], 'ro-', label="Complexity")
+        ax.plot(evolution_state["iterations"], evolution_state["best_fitness"], 'go-', label="Best Fitness")
+        ax.set_xlabel("Iteration")
+        ax.set_ylabel("Fitness - 1-$R^2$")
+        ax.set_yscale("log")
+        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+        ax.set_title("Population Metrics Over Iterations")
+        chart_placeholder.pyplot(fig)
+        # Optionally, clear the evolution state.
+        st.session_state.pop("evolution_state", None)
 
 def run_heatsink_evolution(num_iterations):
     """
-    Runs the evolution process for a user-defined number of iterations.
-    Similar to run_heatsink_analysis, it updates a persistent plot in real time.
-    
-    Args:
-        num_iterations (int): Number of iterations to run the evolution process.
+    (Optional) Runs the evolution process for a user-defined number of iterations.
+    This function can be adapted similarly to run_heatsink_analysis if needed.
     """
-    if "heatsink_data" not in st.session_state:
-        st.error("❌ Heatsink data not found! Please load it first.")
-        return
-
-    config.X, config.y = st.session_state.heatsink_data[1], st.session_state.heatsink_data[3]
-    new_population = Engine.initialize_population(verbose=1)
-
-    avg_fitness_arr = []
-    avg_complexity_arr = []
-    best_fitness_arr = []
-    iterations = []
-    start_time = time.time()
-    chart_placeholder = st.empty()
-    status_text = st.empty()
-    progress_bar = st.progress(0)
-
-    # Create a persistent figure and axis for the evolution plot
-    fig, ax = plt.subplots(figsize=(8, 6))
-    line_avg, = ax.plot([], [], 'bo-', label="Avg Fitness")
-    line_complex, = ax.plot([], [], 'ro-', label="Complexity")
-    line_best, = ax.plot([], [], 'go-', label="Best Fitness")
-    ax.set_xlabel("Iteration")
-    ax.set_ylabel("Fitness - 1-$R^2$")
-    ax.set_yscale("log")
-    ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-    ax.set_title("Population Metrics Over Iterations")
-    chart_placeholder.pyplot(fig)
-
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", RuntimeWarning)
-        for i in range(num_iterations):
-            new_population = Engine.generate_new_population(population=new_population, verbose=1)
-            avg_fitness, avg_complexity, optimal_fitness = Engine.evaluate_population(new_population)
-
-            iterations.append(i + 1)
-            avg_fitness_arr.append(avg_fitness)
-            avg_complexity_arr.append(avg_complexity)
-            best_fitness_arr.append(optimal_fitness)
-
-            elapsed_time = time.time() - start_time
-            status_text.text(f"Iteration {i+1}: Best Fit={optimal_fitness:.8f}, Avg Fit={avg_fitness:.8f}, Avg Comp={avg_complexity:.5f}, Iter Time={elapsed_time:.2f}s")
-            progress_bar.progress((i + 1) / num_iterations)
-
-            line_avg.set_data(iterations, avg_fitness_arr)
-            line_complex.set_data(iterations, avg_complexity_arr)
-            line_best.set_data(iterations, best_fitness_arr)
-
-            ax.relim()
-            ax.autoscale_view()
-
-            chart_placeholder.pyplot(fig)
-            plt.draw()
-            plt.pause(0.001)
-            time.sleep(0.1)
-
-    st.success("✅ Evolution process completed!")
+    st.warning("run_heatsink_evolution is not implemented in the stateful approach. Please use run_heatsink_analysis().")
