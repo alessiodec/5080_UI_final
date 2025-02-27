@@ -123,3 +123,4 @@ def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
     final_best = best_fitness_arr[-1] if best_fitness_arr else None
     st.write(f"Final Best Fitness: {final_best:.8f}" if final_best is not None else "No best fitness computed.")
     st.success("✅ Heatsink Analysis Completed!")
+
