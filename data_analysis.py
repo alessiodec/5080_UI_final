@@ -87,7 +87,7 @@ def descriptive_analysis_page():
 def pca_page():
     st.title("Principal Component Analysis (PCA)")
     explained_variance = pca_plot()
-    st.write("Explained Variance Ratios:", explained_variance)
+    # st.write("Explained Variance Ratios:", explained_variance)
     if st.button("Go Back"):
         st.session_state["data_analysis_page"] = "main"
         safe_rerun()
