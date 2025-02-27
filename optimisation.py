@@ -11,7 +11,7 @@ if "optimisation_page" not in st.session_state:
 def optimisation_menu():
     st.title("Optimisation")
     
-    st.write(""""
+    st.write("""
     **Optimisation methods:**
     Select desired diamater and CO2 pressure, minimise CR (SR <= 1)
     """)
