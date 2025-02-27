@@ -83,7 +83,7 @@ def pca_plot():
     axes[1].set_title('PCA Loadings Heatmap')
     st.pyplot(fig)
     explained_variance = {}
-     for i, var in enumerate(exp_var_ratio):
+    for i, var in enumerate(exp_var_ratio):
         explained_variance[f"PC{i+1}"] = {
             'explained_variance_ratio': var,
             'cumulative_variance_ratio': results['cumulative_variance_ratio'][i]
