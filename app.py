@@ -1,26 +1,9 @@
 import streamlit as st
 
-# Initialize current page if not set
-if 'current_page' not in st.session_state:
-    st.session_state.current_page = "Home"
-
-# Sidebar Navigation with a key for tracking changes
+# Sidebar Navigation
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", 
-                        ["Home", "Data Analysis", "Optimisation", "Physical Relationship Analysis"],
-                        key="nav")
+page = st.sidebar.radio("Go to", ["Home", "Data Analysis", "Optimisation", "Physical Relationship Analysis"])
 
-# When page changes, clear only page-specific keys
-if page != st.session_state.current_page:
-    # Define keys to keep (like navigation state)
-    keys_to_keep = {"nav", "current_page"}
-    for key in list(st.session_state.keys()):
-        if key not in keys_to_keep:
-            st.session_state.pop(key)
-    st.session_state.current_page = page
-    st.experimental_rerun()
-
-# Load pages based on current selection
 if page == "Data Analysis":
     import data_analysis
     data_analysis.data_analysis()
