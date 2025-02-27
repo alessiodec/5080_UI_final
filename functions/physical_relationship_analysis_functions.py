@@ -5,7 +5,6 @@ import pandas as pd
 import warnings
 import time
 import matplotlib.pyplot as plt
-import streamlit as st
 
 from .physical_relationship_analysis_files import Engine
 from .physical_relationship_analysis_files import config
@@ -13,7 +12,6 @@ from .physical_relationship_analysis_files import config
 # Get absolute path to the data file
 def get_data_path(filename):
     return os.path.join(os.path.dirname(__file__), "physical_relationship_analysis_files", filename)
-
 
 def load_heatsink_data(file_path=None, display_output=False):
     """
@@ -124,7 +122,8 @@ def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
 
     # ---- Evolution Loop with Real-Time Graph Updates ----
     st.write("📈 Running Evolution Process...")
-    chart_placeholder = st.empty()  # Placeholder for dynamic graph updates
+    chart_placeholder = st.empty()  # Placeholder for the dynamic plot
+    status_text = st.empty()        # Placeholder for iteration status
 
     # Initialize tracking arrays
     avg_fitness_arr = []
@@ -140,7 +139,7 @@ def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", RuntimeWarning)
         for i in range(num_iterations):
-            # Generate new population from current new_population copy
+            # Generate new population from a copy of the current population
             new_population = Engine.generate_new_population(population=new_population.copy(), verbose=1)
             avg_fitness, avg_complexity, optimal_fitness = Engine.evaluate_population(new_population)
 
@@ -150,9 +149,9 @@ def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
             iterations.append(i + 1)
 
             elapsed_time = time.time() - evolution_start
-            st.write(f"Iteration {i+1}: Best Fit={optimal_fitness:.8f}, Avg Fit={avg_fitness:.8f}, Elapsed Time={elapsed_time:.2f}s")
+            status_text.text(f"Iteration {i+1}: Best Fit={optimal_fitness:.8f}, Avg Fit={avg_fitness:.8f}, Elapsed Time={elapsed_time:.2f}s")
 
-            # Clear and update the plot dynamically
+            # Create and update the plot
             fig, ax = plt.subplots(figsize=(8, 6))
             ax.plot(iterations, avg_fitness_arr, 'bo-', label="Avg Fitness")
             ax.plot(iterations, avg_complexity_arr, 'ro-', label="Complexity")
@@ -163,7 +162,9 @@ def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
             ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
             ax.set_title("Population Metrics Over Iterations")
             chart_placeholder.pyplot(fig)
+            plt.close(fig)
 
+            # Pause briefly to allow the UI to update
             time.sleep(0.1)
 
     st.success("✅ Heatsink Analysis Completed!")
@@ -175,7 +176,6 @@ def run_heatsink_evolution(num_iterations):
     Args:
         num_iterations (int): Number of iterations to run the evolution process.
     """
-
     if "heatsink_data" not in st.session_state:
         st.error("❌ Heatsink data not found! Please load it first.")
         return
@@ -193,8 +193,9 @@ def run_heatsink_evolution(num_iterations):
 
     start_time = time.time()
 
-    # Streamlit placeholder to update graph dynamically
+    # Streamlit placeholders to update graph and status dynamically
     chart_placeholder = st.empty()
+    status_text = st.empty()
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", RuntimeWarning)
@@ -208,23 +209,20 @@ def run_heatsink_evolution(num_iterations):
             best_fitness_arr.append(optimal_fitness)
 
             elapsed_time = time.time() - start_time
+            status_text.text(f"Iter {i+1}: Best Fit={optimal_fitness:.8f}, Avg Fit={avg_fitness:.8f}, Avg Comp={avg_complexity:.5f}, Iter Time={elapsed_time:.2f}s")
 
-            st.write(f"Iter {i+1}: Best Fit={optimal_fitness:.8f}, Avg Fit={avg_fitness:.8f}, Avg Comp={avg_complexity:.5f}, Iter Time={elapsed_time:.2f}s")
-
-            # --- Clear previous figure and update ---
+            # Create and update the plot
             fig, ax = plt.subplots(figsize=(8, 6))
             ax.plot(iterations[: i+1], avg_fitness_arr, 'bo-', label="Avg Fitness")
             ax.plot(iterations[: i+1], avg_complexity_arr, 'ro-', label="Complexity")
             ax.plot(iterations[: i+1], best_fitness_arr, 'go-', label="Best Fitness")
-
             ax.set_xlabel("Iteration")
             ax.set_ylabel("Fitness - 1-$R^2$")
             ax.set_yscale("log")
             ax.legend()
             ax.set_title("Population Metrics Over Iterations")
-
-            # Update the existing plot dynamically
             chart_placeholder.pyplot(fig)
+            plt.close(fig)
 
             time.sleep(0.1)
 
