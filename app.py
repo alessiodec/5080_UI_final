@@ -15,4 +15,5 @@ elif page == "Physical Relationship Analysis":
     physical_relationship_analysis.run()
 else:
     st.title("Welcome to the Main Page")
+    st.write("This UI incorporates the customisable areas of this project for a user to design and solve their own problems")
     st.write("Please select a page from the sidebar.")
