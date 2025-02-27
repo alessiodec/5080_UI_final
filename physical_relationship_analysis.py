@@ -1,11 +1,9 @@
 import streamlit as st
 from functions.physical_relationship_analysis_functions import (
     load_heatsink_data,
-    run_heatsink_analysis,
-    run_heatsink_evolution
+    run_heatsink_analysis
 )
 
-# Helper function: try to rerun if available.
 def safe_rerun():
     if hasattr(st, "experimental_rerun"):
         try:
@@ -58,10 +56,9 @@ def heatsink_page():
     if st.button("Confirm Parameters"):
         try:
             run_heatsink_analysis(pop_size, pop_retention, num_iterations)
-            run_heatsink_evolution(num_iterations)
-            st.success("Heatsink analysis and evolution completed successfully.")
+            st.success("Heatsink analysis completed successfully.")
         except Exception as e:
-            st.error(f"Error running analysis/evolution: {e}")
+            st.error(f"Error running analysis: {e}")
     if st.button("Return to Main Menu"):
         st.session_state["dataset_choice"] = None
         safe_rerun()
