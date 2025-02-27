@@ -39,6 +39,9 @@ def main_menu():
 
 def statistical_analysis_menu():
     st.title("Statistical Analysis")
+
+    st.write("testing")
+    
     if st.button("Descriptive Analysis"):
         st.session_state["data_analysis_page"] = "descriptive_analysis"
         safe_rerun()
