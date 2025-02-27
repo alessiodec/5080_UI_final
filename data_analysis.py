@@ -61,9 +61,11 @@ def statistical_analysis_menu():
         st.session_state["data_analysis_page"] = "main"
         safe_rerun()
 
-
 def contour_plots_menu():
     st.title("Contour Plots")
+
+    st.write("Plots 5x5 grid on any 2 pairs of input variables against selected output variable (CR//SR). The reamaining 3 inputs are kept at their midpoints using the DNN.")
+    
     if st.button("Corrosion Rate"):
         st.session_state["data_analysis_page"] = "corrosion_rate"
         safe_rerun()
