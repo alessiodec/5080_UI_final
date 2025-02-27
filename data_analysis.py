@@ -40,8 +40,14 @@ def main_menu():
 def statistical_analysis_menu():
     st.title("Statistical Analysis")
 
-    st.write("Descriptive Analysis:  \nPrincipal Component Analysis (PCA):  \nInput Histograms: (likely to be removed):")
-    
+    st.write(
+        """  
+        **Descriptive Analysis:** Basic statistical information of the preprocessed dataset.  
+        **Principal Component Analysis (PCA):** Simplifies data by reducing features while preserving variance.  
+        **Input Histograms (likely to be removed):** Displays histograms of input variables.
+        """
+    )
+
     if st.button("Descriptive Analysis"):
         st.session_state["data_analysis_page"] = "descriptive_analysis"
         safe_rerun()
@@ -54,6 +60,7 @@ def statistical_analysis_menu():
     if st.button("Go to Home"):
         st.session_state["data_analysis_page"] = "main"
         safe_rerun()
+
 
 def contour_plots_menu():
     st.title("Contour Plots")
