@@ -5,21 +5,16 @@ from functions.physical_relationship_analysis_functions import (
     run_heatsink_evolution
 )
 
+# Reset the dataset choice whenever this page is loaded.
+st.session_state["dataset_choice"] = None
 # Helper function to safely call experimental_rerun
 def safe_rerun():
     try:
         st.experimental_rerun()
     except Exception as e:
         st.error(f"Rerun failed: {e}")
-    if hasattr(st, "experimental_rerun"):
-        try:
-            st.experimental_rerun()
-        except Exception as e:
-            st.error(f"Rerun failed: {e}")
-    else:
-        st.write("Page state updated. Please manually refresh if needed.")
 
-# Reset dataset choice on page load.
+# Reset dataset choice on page load
 if "dataset_choice" not in st.session_state:
     st.session_state["dataset_choice"] = None
 
@@ -35,13 +30,13 @@ def main_menu():
             st.session_state["dataset_choice"] = "heatsink"
     if st.button("Go to Home"):
         st.session_state["page"] = "main"
-        safe_rerun()
 
 def corrosion_page():
     st.title("Corrosion Dataset")
     st.info("Not ready yet.")
     if st.button("Return to Main Menu"):
         st.session_state["dataset_choice"] = None
+        st.experimental_rerun()
         safe_rerun()
 
 def heatsink_page():
@@ -62,12 +57,13 @@ def heatsink_page():
     if st.button("Confirm Parameters"):
         try:
             run_heatsink_analysis(pop_size, pop_retention, num_iterations)
-            # Removed duplicate evolution plot: run_heatsink_evolution(num_iterations) is no longer called.
-            st.success("Heatsink analysis completed successfully.")
+            run_heatsink_evolution(num_iterations)
+            st.success("Heatsink analysis and evolution completed successfully.")
         except Exception as e:
-            st.error(f"Error running analysis: {e}")
+            st.error(f"Error running analysis/evolution: {e}")
     if st.button("Return to Main Menu"):
         st.session_state["dataset_choice"] = None
+        st.experimental_rerun()
         safe_rerun()
 
 def main():
