@@ -90,6 +90,8 @@ def pca_plot():
         }
     # return explained_variance
 
+    st.write("insert findings // what it means here??")
+
 def plot_5x5_cr(X, scaler_X, cr_model):
     mid_points = np.median(X, axis=0)
     var_names = ['pH', 'T (C)', 'log10 PCO2 (bar)', 'log10 v (ms-1)', 'log10 d']
