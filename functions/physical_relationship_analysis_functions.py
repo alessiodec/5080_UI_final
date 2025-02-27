@@ -122,8 +122,9 @@ def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
 
     # ---- Evolution Loop with Real-Time Graph Updates ----
     st.write("📈 Running Evolution Process...")
-    chart_placeholder = st.empty()  # Placeholder for the dynamic plot
+    chart_placeholder = st.empty()  # Placeholder for dynamic plot updates
     status_text = st.empty()        # Placeholder for iteration status
+    progress_bar = st.progress(0)   # Progress bar to help force UI updates
 
     # Initialize tracking arrays
     avg_fitness_arr = []
@@ -131,9 +132,8 @@ def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
     best_fitness_arr = []
     iterations = []
 
-    # IMPORTANT: Initialize new_population from init_population
+    # Initialize new_population from init_population
     new_population = init_population.copy()
-
     evolution_start = time.time()
 
     with warnings.catch_warnings():
@@ -150,6 +150,7 @@ def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
 
             elapsed_time = time.time() - evolution_start
             status_text.text(f"Iteration {i+1}: Best Fit={optimal_fitness:.8f}, Avg Fit={avg_fitness:.8f}, Elapsed Time={elapsed_time:.2f}s")
+            progress_bar.progress((i + 1) / num_iterations)
 
             # Create and update the plot
             fig, ax = plt.subplots(figsize=(8, 6))
@@ -161,10 +162,11 @@ def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
             ax.set_yscale("log")
             ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
             ax.set_title("Population Metrics Over Iterations")
+            # Clear previous plot and update with the new figure
+            chart_placeholder.empty()
             chart_placeholder.pyplot(fig)
             plt.close(fig)
 
-            # Pause briefly to allow the UI to update
             time.sleep(0.1)
 
     st.success("✅ Heatsink Analysis Completed!")
@@ -193,13 +195,13 @@ def run_heatsink_evolution(num_iterations):
 
     start_time = time.time()
 
-    # Streamlit placeholders to update graph and status dynamically
+    # Placeholders to update graph and status dynamically
     chart_placeholder = st.empty()
     status_text = st.empty()
+    progress_bar = st.progress(0)
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", RuntimeWarning)
-
         for i in iterations:
             new_population = Engine.generate_new_population(population=new_population, verbose=1)
             avg_fitness, avg_complexity, optimal_fitness = Engine.evaluate_population(new_population)
@@ -210,6 +212,7 @@ def run_heatsink_evolution(num_iterations):
 
             elapsed_time = time.time() - start_time
             status_text.text(f"Iter {i+1}: Best Fit={optimal_fitness:.8f}, Avg Fit={avg_fitness:.8f}, Avg Comp={avg_complexity:.5f}, Iter Time={elapsed_time:.2f}s")
+            progress_bar.progress((i + 1) / num_iterations)
 
             # Create and update the plot
             fig, ax = plt.subplots(figsize=(8, 6))
@@ -221,9 +224,11 @@ def run_heatsink_evolution(num_iterations):
             ax.set_yscale("log")
             ax.legend()
             ax.set_title("Population Metrics Over Iterations")
+            chart_placeholder.empty()
             chart_placeholder.pyplot(fig)
             plt.close(fig)
 
-            time.sleep(0.1)
+            time.sleep(3)
 
     st.success("✅ Evolution process completed!")
+
