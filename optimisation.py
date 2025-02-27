@@ -12,8 +12,8 @@ def optimisation_menu():
     st.title("Optimisation")
     
     st.write("""
-    **Optimisation methods:**
-    Select desired diamater and CO2 pressure, minimise CR (SR <= 1)
+    **Optimisation methods:**  \n
+    - Select desired diamater and CO2 pressure, minimise CR (SR <= 1)
     """)
     
     # Button to navigate to the minimisation page.
