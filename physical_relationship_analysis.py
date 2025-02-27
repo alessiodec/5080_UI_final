@@ -4,19 +4,6 @@ from functions.physical_relationship_analysis_functions import (
     run_heatsink_analysis
 )
 
-def safe_rerun():
-    if hasattr(st, "experimental_rerun"):
-        try:
-            st.experimental_rerun()
-        except Exception as e:
-            st.error(f"Rerun failed: {e}")
-    else:
-        st.write("Page state updated. Please manually refresh if needed.")
-
-# Reset dataset choice on page load.
-if "dataset_choice" not in st.session_state:
-    st.session_state["dataset_choice"] = None
-
 def main_menu():
     st.title("Physical Relationship Analysis")
     st.write("Please choose a dataset:")
@@ -29,14 +16,13 @@ def main_menu():
             st.session_state["dataset_choice"] = "heatsink"
     if st.button("Go to Home"):
         st.session_state["page"] = "main"
-        safe_rerun()
 
 def corrosion_page():
     st.title("Corrosion Dataset")
     st.info("Not ready yet.")
     if st.button("Return to Main Menu"):
         st.session_state["dataset_choice"] = None
-        safe_rerun()
+        st.experimental_rerun()
 
 def heatsink_page():
     st.title("Heatsink Dataset Analysis")
@@ -61,7 +47,7 @@ def heatsink_page():
             st.error(f"Error running analysis: {e}")
     if st.button("Return to Main Menu"):
         st.session_state["dataset_choice"] = None
-        safe_rerun()
+        st.experimental_rerun()
 
 def main():
     choice = st.session_state.get("dataset_choice", None)
