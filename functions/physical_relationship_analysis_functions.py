@@ -106,7 +106,7 @@ def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
 
     # Display a few individuals for reference
     # for i, individual in enumerate(init_population[:10]):
-        st.text(f"{i}: Fitness={individual.fitness:.4f}, Complexity={individual.complexity}, Eq={individual.individual}")
+    #    st.text(f"{i}: Fitness={individual.fitness:.4f}, Complexity={individual.complexity}, Eq={individual.individual}")
 
     Engine.evaluate_population(init_population)
 
