@@ -48,7 +48,7 @@ def heatsink_page():
     - Uses the heatsink dataset to perform evolutionary algorithm to breed well-performing candidates from the population
     - User input for population size and retention size, as well as the number of iterations to run the algorithm
     - Real-time plotting of fitness and complexity throughout iterations
-    * need to add pareto fronts and a way of to display the neatened-up expression for the best point found *
+    - [need to add pareto fronts and a way of to display the neatened-up expression for the best point found]
     
     """)
     
