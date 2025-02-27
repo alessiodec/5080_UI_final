@@ -33,33 +33,24 @@ def load_heatsink_data(file_path=None, display_output=False):
     """
     if file_path is None:
         file_path = get_data_path("Latin_Hypercube_Heatsink_1000_samples.txt")
-
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"Dataset not found at {file_path}. Ensure the file is correctly placed.")
-
     with open(file_path, "r") as f:
         text = f.read()
-
     data = [x.split(' ') for x in text.split('\n') if x.strip() != '']
     df = pd.DataFrame(data, columns=['Geometric1', 'Geometric2', 'Thermal_Resistance', 'Pressure_Drop'])
     df = df.apply(pd.to_numeric)
-
     X = df[['Geometric1', 'Geometric2']].values
     y = df['Pressure_Drop'].values.reshape(-1,)  # Using Pressure_Drop as target
-
     mean_y = np.mean(y)
     std_y = np.std(y)
-
     config.mean_y = mean_y
     config.std_y = std_y
-
     if display_output:
         st.write("Mean of y:", mean_y)
         st.write("Standard deviation of y:", std_y)
         st.write("DataFrame:", df)
-
     standardised_y = (y - mean_y) / std_y
-
     return df, X, y, standardised_y, mean_y, std_y
 
 def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
@@ -113,7 +104,7 @@ def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
     status_text = st.empty()         # Placeholder for iteration status
     progress_bar = st.progress(0)    # Progress bar for UI updates
 
-    # Initialize tracking arrays
+    # Initialize tracking arrays and population
     avg_fitness_arr = []
     avg_complexity_arr = []
     best_fitness_arr = []
@@ -160,6 +151,9 @@ def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
 
             # Update the existing plot in the same placeholder
             chart_placeholder.pyplot(fig)
+            # Attempt to flush the drawing events
+            plt.draw()
+            plt.pause(0.001)
             time.sleep(0.1)
 
     st.success("✅ Heatsink Analysis Completed!")
@@ -223,6 +217,8 @@ def run_heatsink_evolution(num_iterations):
             ax.autoscale_view()
 
             chart_placeholder.pyplot(fig)
+            plt.draw()
+            plt.pause(0.001)
             time.sleep(0.1)
 
     st.success("✅ Evolution process completed!")
