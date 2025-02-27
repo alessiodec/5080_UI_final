@@ -61,10 +61,10 @@ def load_heatsink_data(file_path=None, display_output=False):
     config.std_y = std_y
 
     # Optionally display the computed values and DataFrame in the Streamlit app
-    if display_output:
-        st.write("Mean of y:", mean_y)
-        st.write("Standard deviation of y:", std_y)
-        st.write("DataFrame:", df)
+    # if display_output:
+    #    st.write("Mean of y:", mean_y)
+    #    st.write("Standard deviation of y:", std_y)
+    #    st.write("DataFrame:", df)
 
     # Standardize y
     standardised_y = (y - mean_y) / std_y
