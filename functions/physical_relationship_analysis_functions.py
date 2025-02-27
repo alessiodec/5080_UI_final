@@ -39,10 +39,10 @@ def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
     """
     Runs the heatsink analysis based on user-defined population parameters and number of iterations.
     """
-    # Update the configuration.
+    # Update configuration
     config.POPULATION_SIZE = pop_size
     config.POPULATION_RETENTION_SIZE = pop_retention
-    config.FIT_THRESHOLD = 10  # Fixed threshold.
+    config.FIT_THRESHOLD = 10  # Fixed threshold
 
     if "heatsink_data" not in st.session_state:
         st.error("❌ Heatsink data has not been loaded. Run 'Load Heatsink Data' first.")
@@ -59,7 +59,7 @@ def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
             init_population = Engine.initialize_population(verbose=0)
     st.write(f"✅ Population initialized in {time.time() - start_time:.2f} seconds")
 
-    # (No printing of individual details)
+    # (No individual printing)
 
     Engine.evaluate_population(init_population)
 
@@ -72,9 +72,9 @@ def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
     st.write(f"✅ Population simplified in {time.time() - start_time:.2f} seconds")
 
     st.write("📈 Running Evolution Process...")
-    chart_placeholder = st.empty()  # Placeholder for real-time updates.
+    chart_placeholder = st.empty()  # For dynamic real-time updates
 
-    # Tracking arrays.
+    # Initialize tracking arrays
     avg_fitness_arr = []
     avg_complexity_arr = []
     best_fitness_arr = []
@@ -92,7 +92,9 @@ def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
             avg_complexity_arr.append(avg_complexity)
             best_fitness_arr.append(optimal_fitness)
             iterations.append(i + 1)
-            # Update the real-time graph.
+
+            # Update the graph in real time:
+            chart_placeholder.empty()  # clear previous plot
             fig, ax = plt.subplots(figsize=(8, 6))
             ax.plot(iterations, avg_fitness_arr, 'bo-', label="Avg Fitness")
             ax.plot(iterations, avg_complexity_arr, 'ro-', label="Complexity")
@@ -103,6 +105,7 @@ def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
             ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
             ax.set_title("Population Metrics Over Iterations")
             chart_placeholder.pyplot(fig)
+
             time.sleep(0.1)
 
     final_best = best_fitness_arr[-1] if best_fitness_arr else None
@@ -136,7 +139,9 @@ def run_heatsink_evolution(num_iterations):
             avg_complexity_arr.append(avg_complexity)
             best_fitness_arr.append(optimal_fitness)
             time.sleep(0.1)
-            # Update the real-time graph each iteration.
+
+            # Update the real-time graph:
+            chart_placeholder.empty()
             fig, ax = plt.subplots(figsize=(8, 6))
             iterations = list(range(1, i + 2))
             ax.plot(iterations, avg_fitness_arr, 'bo-', label="Avg Fitness")
