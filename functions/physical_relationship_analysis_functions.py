@@ -113,7 +113,7 @@ def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
         ax.set_title("Population Metrics Over Iterations")
         chart_placeholder.pyplot(fig)
         plt.close(fig)
-        time.sleep(1)  # Delay to allow visible update
+        time.sleep(2)  # Delay to allow visible update
 
     final_best = best_fitness_arr[-1] if best_fitness_arr else None
     st.write(f"Final Best Fitness: {final_best:.8f}" if final_best is not None else "No best fitness computed.")
