@@ -40,7 +40,7 @@ def main_menu():
 def statistical_analysis_menu():
     st.title("Statistical Analysis")
 
-    st.write("testing  \ntest new line")
+    st.write("Descriptive Analysis:  \nPrincipal Component Analysis (PCA):  \nInput Histograms: (likely to be removed):")
     
     if st.button("Descriptive Analysis"):
         st.session_state["data_analysis_page"] = "descriptive_analysis"
