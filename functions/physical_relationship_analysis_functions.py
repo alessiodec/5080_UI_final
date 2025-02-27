@@ -42,9 +42,9 @@ def load_heatsink_data(file_path=None, display_output=False):
 
 def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
     """
-    Runs the heatsink analysis by initializing and simplifying the population,
-    then running an evolution loop that updates a graph in real time.
-    At the end, only the final best fitness is printed alongside the final graph.
+    Initializes and simplifies the population, then runs an evolution loop that
+    updates a persistent graph in real time. After the loop, only the final best
+    fitness is printed alongside the final graph.
     """
     # Update configuration
     config.POPULATION_SIZE = pop_size
@@ -55,7 +55,6 @@ def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
         st.error("❌ Heatsink data has not been loaded. Run 'Load Heatsink Data' first.")
         return
 
-    # Unpack stored heatsink data and update config.X and config.y
     df, X, y, standardised_y, mean_y, std_y = st.session_state["heatsink_data"]
     config.X, config.y = X, standardised_y
 
@@ -67,9 +66,8 @@ def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
             init_population = Engine.initialize_population(verbose=0)
     st.write(f"✅ Population initialized in {time.time() - start_time:.2f} seconds.")
 
-    # Evaluate population (no per-individual output)
+    # Evaluate and simplify population
     Engine.evaluate_population(init_population)
-
     st.write("⚙️ Simplifying Population...")
     start_time = time.time()
     with st.spinner("Simplifying expressions..."):
@@ -79,7 +77,19 @@ def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
     st.write(f"✅ Population simplified in {time.time() - start_time:.2f} seconds.")
 
     st.write("📈 Running Evolution Process...")
-    # Create a placeholder for real-time graph updates
+
+    # Create a persistent figure and axis for updating in real time.
+    fig, ax = plt.subplots(figsize=(8, 6))
+    line_avg, = ax.plot([], [], 'bo-', label="Avg Fitness")
+    line_comp, = ax.plot([], [], 'ro-', label="Complexity")
+    line_best, = ax.plot([], [], 'go-', label="Best Fitness")
+    ax.set_xlabel("Iteration")
+    ax.set_ylabel("Fitness - 1-$R^2$")
+    ax.set_yscale("log")
+    ax.legend(loc="center left", bbox_to_anchor=(1, 0.5))
+    ax.set_title("Population Metrics Over Iterations")
+
+    # Create a placeholder for real-time graph updates.
     chart_placeholder = st.empty()
 
     # Initialize tracking arrays.
@@ -88,7 +98,6 @@ def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
     best_fitness_arr = []
     iterations = []
 
-    # Start evolution with the simplified population.
     new_population = simplified_population.copy()
     evolution_start = time.time()
 
@@ -100,20 +109,16 @@ def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
         best_fitness_arr.append(optimal_fitness)
         iterations.append(i + 1)
 
-        # Clear the previous plot and update the graph in real time.
-        chart_placeholder.empty()  # clear previous plot
-        fig, ax = plt.subplots(figsize=(8, 6))
-        ax.plot(iterations, avg_fitness_arr, 'bo-', label="Avg Fitness")
-        ax.plot(iterations, avg_complexity_arr, 'ro-', label="Complexity")
-        ax.plot(iterations, best_fitness_arr, 'go-', label="Best Fitness")
-        ax.set_xlabel("Iteration")
-        ax.set_ylabel("Fitness - 1-$R^2$")
-        ax.set_yscale("log")
-        ax.legend(loc="center left", bbox_to_anchor=(1, 0.5))
-        ax.set_title("Population Metrics Over Iterations")
+        # Update the persistent figure's data.
+        line_avg.set_data(iterations, avg_fitness_arr)
+        line_comp.set_data(iterations, avg_complexity_arr)
+        line_best.set_data(iterations, best_fitness_arr)
+        ax.relim()
+        ax.autoscale_view()
+
+        # Update the placeholder with the modified figure.
         chart_placeholder.pyplot(fig)
-        plt.close(fig)
-        time.sleep(2)  # Delay to allow visible update
+        time.sleep(1.0)  # Adjust delay as needed
 
     final_best = best_fitness_arr[-1] if best_fitness_arr else None
     st.write(f"Final Best Fitness: {final_best:.8f}" if final_best is not None else "No best fitness computed.")
