@@ -67,8 +67,7 @@ def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
             init_population = Engine.initialize_population(verbose=0)
     st.write(f"✅ Population initialized in {time.time() - start_time:.2f} seconds.")
 
-    # (Initial population details are not printed.)
-
+    # Evaluate population (no per-individual output)
     Engine.evaluate_population(init_population)
 
     st.write("⚙️ Simplifying Population...")
@@ -83,17 +82,17 @@ def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
     # Create a placeholder for real-time graph updates
     chart_placeholder = st.empty()
 
-    # Initialize tracking arrays
+    # Initialize tracking arrays.
     avg_fitness_arr = []
     avg_complexity_arr = []
     best_fitness_arr = []
     iterations = []
 
+    # Start evolution with the simplified population.
     new_population = simplified_population.copy()
     evolution_start = time.time()
 
     for i in range(num_iterations):
-        # Generate new population from current population copy
         new_population = Engine.generate_new_population(population=new_population.copy(), verbose=0)
         avg_fitness, avg_complexity, optimal_fitness = Engine.evaluate_population(new_population)
         avg_fitness_arr.append(avg_fitness)
@@ -101,7 +100,8 @@ def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
         best_fitness_arr.append(optimal_fitness)
         iterations.append(i + 1)
 
-        # Create a new figure for this iteration and update the placeholder.
+        # Clear the previous plot and update the graph in real time.
+        chart_placeholder.empty()  # clear previous plot
         fig, ax = plt.subplots(figsize=(8, 6))
         ax.plot(iterations, avg_fitness_arr, 'bo-', label="Avg Fitness")
         ax.plot(iterations, avg_complexity_arr, 'ro-', label="Complexity")
@@ -112,8 +112,8 @@ def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
         ax.legend(loc="center left", bbox_to_anchor=(1, 0.5))
         ax.set_title("Population Metrics Over Iterations")
         chart_placeholder.pyplot(fig)
-
-        time.sleep(0.5)  # Increase delay to visibly update each iteration
+        plt.close(fig)
+        time.sleep(1)  # Delay to allow visible update
 
     final_best = best_fitness_arr[-1] if best_fitness_arr else None
     st.write(f"Final Best Fitness: {final_best:.8f}" if final_best is not None else "No best fitness computed.")
