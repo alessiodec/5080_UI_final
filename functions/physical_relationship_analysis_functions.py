@@ -195,6 +195,8 @@ def run_heatsink_evolution(num_iterations):
     # Streamlit placeholder to update graph dynamically
     chart_placeholder = st.empty()
 
+'''
+    
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", RuntimeWarning)
 
@@ -226,5 +228,7 @@ def run_heatsink_evolution(num_iterations):
             chart_placeholder.pyplot(fig)
 
             time.sleep(0.1)
+
+'''
 
     st.success("✅ Evolution process completed!")
