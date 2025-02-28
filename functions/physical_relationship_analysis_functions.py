@@ -93,6 +93,6 @@ def run_heatsink_analysis_and_evolution(pop_size, pop_retention, num_iterations)
 
             chart_placeholder.pyplot(fig)
 
-            time.sleep(0.1)
+            time.sleep(2)
 
     st.success("✅ Heatsink Analysis and Evolution Completed!")
