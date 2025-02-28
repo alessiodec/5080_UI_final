@@ -1,8 +1,7 @@
 import streamlit as st
 from functions.physical_relationship_analysis_functions import (
     load_heatsink_data,
-    run_heatsink_analysis,
-    run_heatsink_evolution
+    run_heatsink_analysis_and_evolution
 )
 
 # Reset the dataset choice whenever this page is loaded.
@@ -43,16 +42,14 @@ def corrosion_page():
 def heatsink_page():
     st.title("Heatsink Dataset Analysis")
 
-    st.write (""" 
-
-    - Uses the heatsink dataset to perform evolutionary algorithm to breed well-performing candidates from the population
-    - User input for population size and retention size, as well as the number of iterations to run the algorithm
+    st.write("""
+    - Uses the heatsink dataset to perform an evolutionary algorithm to breed well-performing candidates from the population
+    - User input for population size, retention size, and the number of iterations
     - Real-time plotting of fitness and complexity throughout iterations
-    - [need to add pareto fronts and a way of to display the neatened-up expression for the best point found]
-    
+    - Pareto front visualization (planned)
+    - Display of the best-fit equation found
     """)
-    
-    
+
     # Automatically load heatsink data if not already loaded.
     if "heatsink_data" not in st.session_state:
         try:
@@ -62,17 +59,19 @@ def heatsink_page():
         except Exception as e:
             st.error(f"Error loading heatsink data: {e}")
             return
+
     st.write("Enter parameters for analysis:")
     pop_size = st.number_input("Population Size:", min_value=10, value=200, step=10)
     pop_retention = st.number_input("Population Retention Size:", min_value=1, value=50, step=1)
     num_iterations = st.number_input("Number of Iterations:", min_value=1, value=10, step=1)
-    if st.button("Confirm Parameters"):
+
+    if st.button("Run Analysis and Evolution"):
         try:
-            run_heatsink_analysis(pop_size, pop_retention, num_iterations)
-            run_heatsink_evolution(num_iterations)
+            run_heatsink_analysis_and_evolution(pop_size, pop_retention, num_iterations)
             st.success("Heatsink analysis and evolution completed successfully.")
         except Exception as e:
             st.error(f"Error running analysis/evolution: {e}")
+
     if st.button("Return to Main Menu"):
         st.session_state["dataset_choice"] = None
         st.experimental_rerun()
