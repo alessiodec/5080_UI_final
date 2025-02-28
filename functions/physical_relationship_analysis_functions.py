@@ -71,7 +71,7 @@ def load_heatsink_data(file_path=None, display_output=False):
 
     return df, X, y, standardised_y, mean_y, std_y
 
-def run_heatsink_analysis(pop_size, pop_retention):
+def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
     """
        Runs the heatsink analysis based on user-defined population parameters and number of iterations.
     
