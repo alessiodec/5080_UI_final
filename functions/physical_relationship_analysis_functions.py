@@ -71,7 +71,7 @@ def load_heatsink_data(file_path=None, display_output=False):
 
     return df, X, y, standardised_y, mean_y, std_y
 
-def run_heatsink_analysis(pop_size, pop_retention, num_iterations):
+def run_heatsink_analysis(pop_size, pop_retention):
     """
        Runs the heatsink analysis based on user-defined population parameters and number of iterations.
     
@@ -194,8 +194,6 @@ def run_heatsink_evolution(num_iterations):
 
     # Streamlit placeholder to update graph dynamically
     chart_placeholder = st.empty()
-
-'''
     
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", RuntimeWarning)
@@ -228,7 +226,5 @@ def run_heatsink_evolution(num_iterations):
             chart_placeholder.pyplot(fig)
 
             time.sleep(0.1)
-
-'''
 
     st.success("✅ Evolution process completed!")
