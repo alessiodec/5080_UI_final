@@ -9,13 +9,14 @@ from functions.data_analysis_functions import (
     load_models
 )
 
-# Reset dataset choice whenever this page is loaded.
+# RESET PAGE WHENEVER IT IS RELOADED
 st.session_state["dataset_choice"] = None
 
-# Initialize session state for navigation if not already set.
+# SET DEFAULT PAGE FOR THIS SECTION
 if "data_analysis_page" not in st.session_state:
     st.session_state["data_analysis_page"] = "main"
 
+# REFRESH PAGE WHEN USER NAGIVATES BETWEEN SUB-PAGES
 def safe_rerun():
     if hasattr(st, "experimental_rerun"):
         try:
@@ -23,10 +24,12 @@ def safe_rerun():
         except Exception as e:
             st.error(f"Rerun failed: {e}")
 
+# DEF PAGES
 def main_menu():
     st.title("Data Analysis")
     st.write("Select an analysis category:")
-    # Display two buttons side by side using columns.
+    
+    # SUBPAGE OPTIONS
     col1, col2 = st.columns(2)
     with col1:
         if st.button("Statistical Analysis"):
@@ -117,7 +120,7 @@ def saturation_ratio_page():
         st.session_state["data_analysis_page"] = "main"
         safe_rerun()
 
-# Wrap the navigation logic in a function
+# NAVIGATION LOGIC
 def data_analysis():
     page = st.session_state.get("data_analysis_page", "main")
     if page == "main":
