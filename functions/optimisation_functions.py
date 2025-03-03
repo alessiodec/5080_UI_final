@@ -8,39 +8,27 @@ from pymoo.algorithms.soo.nonconvex.de import DE
 from pymoo.operators.sampling.lhs import LHS
 import streamlit as st
 
-# -------------------------------------------------------------------
-# Load dataset and prepare data
-# -------------------------------------------------------------------
+# data loading and preprocessing
 csv_url = "https://drive.google.com/uc?export=download&id=10GtBpEkWIp4J-miPzQrLIH6AWrMrLH-o"
 Data_ph5 = pd.read_csv(csv_url)
-
-# Keep only the data of interest
 XData = Data_ph5[["pH", "T", "PCO2", "v", "d"]]
 YData = Data_ph5[["CR", "SR"]]
-
-# Apply log transformation to PCO2, v, and d (as in the original notebook)
 XData["PCO2"] = np.log10(XData["PCO2"])
 XData["v"] = np.log10(XData["v"])
 XData["d"] = np.log10(XData["d"])
 XData = XData.dropna()
 YData = YData.dropna()
 
-# -------------------------------------------------------------------
-# Load pre-trained models
-# -------------------------------------------------------------------
+# load models
 CorrosionModel = load_model("models/CorrosionRateModel.keras")
 SaturationModel = load_model("models/SaturationRateModel.keras")
 
-# -------------------------------------------------------------------
-# Create and fit a scaler on the input data (all 5 features)
-# -------------------------------------------------------------------
+# Create and fit scaler on the input data
 scaler = preprocessing.StandardScaler()
 XDataScaled = scaler.fit_transform(XData).astype("float32")
 
-# -------------------------------------------------------------------
 # Function to reverse scaling and log10 transformation.
 # Expects a 1D array of length 5.
-# -------------------------------------------------------------------
 def ReverseScalingandLog10(optimisationResult):
     result_reshaped = optimisationResult.reshape(1, -1)
     real_values = scaler.inverse_transform(result_reshaped)
