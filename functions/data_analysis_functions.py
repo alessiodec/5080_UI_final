@@ -7,12 +7,13 @@ from sklearn.preprocessing import StandardScaler
 import seaborn as sns
 from sklearn.decomposition import PCA
 
+# load models from models folder
 def load_models():
-    # Load models from the 'models' folder in the main repo
     cr_model = load_model("models/CorrosionRateModel.keras")
     sr_model = load_model("models/SaturationRateModel.keras")
     return cr_model, sr_model
 
+# summary statistics of dataset
 def descriptive_analysis(X):
     st.write("Descriptive Statistics:")
     if not isinstance(X, pd.DataFrame):
@@ -26,6 +27,7 @@ def descriptive_analysis(X):
     X_subset = X.iloc[:, :5]
     st.write(X_subset.describe())
 
+# input histograms
 def input_histogram():
     csv_url = "https://drive.google.com/uc?export=download&id=10GtBpEkWIp4J-miPzQrLIH6AWrMrLH-o"
     df = pd.read_csv(csv_url)
@@ -39,6 +41,7 @@ def input_histogram():
     st.pyplot(plt.gcf())
     plt.close()
 
+# read csv from google drive url, do necessary preprocessing
 def load_preprocess_data():
     csv_url = "https://drive.google.com/uc?export=download&id=10GtBpEkWIp4J-miPzQrLIH6AWrMrLH-o"
     df = pd.read_csv(csv_url)
@@ -52,6 +55,7 @@ def load_preprocess_data():
     scaler_X.fit(X)
     return df_subset, X, scaler_X
 
+# pca plot
 def pca_plot():
     csv_url = "https://drive.google.com/uc?export=download&id=10GtBpEkWIp4J-miPzQrLIH6AWrMrLH-o"
     df = pd.read_csv(csv_url)
@@ -89,9 +93,10 @@ def pca_plot():
             'cumulative_variance_ratio': results['cumulative_variance_ratio'][i]
         }
     # return explained_variance
-
+    # my own notes**
     st.write("insert findings // what it means here??")
 
+# cr contour plot
 def plot_5x5_cr(X, scaler_X, cr_model):
     mid_points = np.median(X, axis=0)
     var_names = ['pH', 'T (C)', 'log10 PCO2 (bar)', 'log10 v (ms-1)', 'log10 d']
@@ -126,6 +131,7 @@ def plot_5x5_cr(X, scaler_X, cr_model):
     plt.suptitle('CR For Different Input Combinations', fontsize=18)
     st.pyplot(fig)
 
+# sr contour plot
 def plot_5x5_sr(X, scaler_X, sr_model):
     mid_points = np.median(X, axis=0)
     var_names = ['pH', 'T (C)', 'log10 PCO2 (bar)', 'log10 v (ms-1)', 'log10 d']
