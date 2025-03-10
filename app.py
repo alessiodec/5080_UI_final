@@ -9,17 +9,17 @@ pages = {
 }
 
 # Get the current page from query parameters, defaulting to Home.
-query_params = st.experimental_get_query_params()
+query_params = st.query_params
 if "page" in query_params:
     current_page = query_params["page"][0]
 else:
     current_page = "Home"
 
-# Generate the tab ribbon HTML.
+# Generate the tab ribbon HTML with target="_self" to open in the same window.
 tabs_html = '<div class="tab">'
 for page in pages:
     active_class = "active" if page == current_page else ""
-    tabs_html += f'<a class="tablinks {active_class}" href="?page={page}">{page}</a>'
+    tabs_html += f'<a class="tablinks {active_class}" href="?page={page}" target="_self">{page}</a>'
 tabs_html += '</div>'
 
 # CSS styling for the tab ribbon.
