@@ -1,5 +1,6 @@
 import streamlit as st
 
+st.markdown("<style>.stApp { background-color: white; }</style>", unsafe_allow_html=True)
 st.set_page_config(layout="wide")
 
 # SIDEBAR NAVIGATION
