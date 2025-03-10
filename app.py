@@ -1,6 +1,6 @@
 import streamlit as st
 
-# Define the pages and their descriptions.
+# Define pages and their descriptions.
 pages = {
     "Home": "This is the main page where you get an overview of the project.",
     "Data Analysis": "This page performs data analysis on your data.",
@@ -8,20 +8,46 @@ pages = {
     "Physical Relationship Analysis": "This page examines physical relationship data."
 }
 
-# Initialize the session state for current_page if not already set.
-if 'current_page' not in st.session_state:
-    st.session_state.current_page = "Home"
+# Inject custom CSS to style the horizontal radio as a tab bar.
+tab_css = """
+<style>
+/* Make the radio buttons horizontal */
+div.stRadio > div { 
+    display: flex; 
+    flex-direction: row;
+    justify-content: flex-start;
+}
+/* Style the labels to look like tabs */
+div.stRadio > div > label {
+    margin-right: 20px;
+    padding: 10px 20px;
+    border: 1px solid #ddd;
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+    background-color: #f5f5f5;
+    cursor: pointer;
+}
+/* Hover effect */
+div.stRadio > div > label:hover {
+    background-color: #e5e5e5;
+}
+/* Hide the default radio button */
+div.stRadio > div > input[type="radio"] {
+    display: none;
+}
+/* Highlight the selected tab by using the adjacent sibling selector workaround.
+   Streamlit doesn't allow direct styling of the checked state, so we simulate this by re-rendering the radio
+   with the selected value having a different background.
+*/
+</style>
+"""
+st.markdown(tab_css, unsafe_allow_html=True)
 
-# Create a row of buttons for navigation (simulating top tabs).
-cols = st.columns(len(pages))
-for i, page_name in enumerate(pages.keys()):
-    if cols[i].button(page_name):
-        st.session_state.current_page = page_name
+# Create horizontal "tab" navigation using st.radio.
+# Using horizontal=True forces a row layout.
+page = st.radio("", list(pages.keys()), horizontal=True)
 
-# Determine the current page from the session state.
-page = st.session_state.current_page
-
-# Display the main content based on the selected page.
+# Render the main content based on the selected page.
 if page == "Data Analysis":
     import data_analysis
     data_analysis.data_analysis()
@@ -32,11 +58,10 @@ elif page == "Physical Relationship Analysis":
     import physical_relationship_analysis
     physical_relationship_analysis.run()
 else:
-    # Home page content.
     st.title("Welcome to the Main Page")
     st.write("This UI incorporates the customizable areas of this project for a user to design and solve their own problems.")
-    st.write("Please select a page from the top navigation.")
+    st.write("Please select a page from the tab navigation above.")
 
-# Add a sidebar area to display a description of the current page.
+# Add a sidebar area to display the description of the current page.
 st.sidebar.title("Page Description")
 st.sidebar.write(pages.get(page, ""))
