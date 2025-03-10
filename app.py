@@ -1,9 +1,5 @@
 import streamlit as st
 
-# LEFT SIDEBAR: Navigation
-st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Home", "Data Analysis", "Optimisation", "Physical Relationship Analysis"])
-
 # Dictionary holding page descriptions
 page_info = {
     "Home": "This is the main landing page. You can design and solve your own problems here.",
@@ -12,17 +8,23 @@ page_info = {
     "Physical Relationship Analysis": "This page contains tools to analyse physical relationships."
 }
 
-# MAIN LAYOUT: Two columns
-# The first column (col_main) is for page content.
-# The second column (col_sidebar) simulates a second sidebar.
-col_main, col_sidebar = st.columns([3, 1])
+# Create three columns:
+# - col_nav for the navigation sidebar
+# - col_info for the page information sidebar
+# - col_main for the main content area
+col_nav, col_info, col_main = st.columns([1, 1, 3])
 
-# RIGHT SIDEBAR SIMULATION: Display additional page information
-with col_sidebar:
+# Navigation Sidebar (Leftmost Column)
+with col_nav:
+    st.title("Navigation")
+    page = st.radio("Go to", ["Home", "Data Analysis", "Optimisation", "Physical Relationship Analysis"])
+
+# Page Information Sidebar (Middle Column)
+with col_info:
     st.markdown("### Page Information")
     st.write(page_info[page])
 
-# MAIN CONTENT: Render page based on selection
+# Main Content Area (Rightmost Column)
 with col_main:
     if page == "Data Analysis":
         import data_analysis
@@ -36,4 +38,4 @@ with col_main:
     else:
         st.title("Welcome to the Main Page")
         st.write("This UI incorporates the customizable areas of this project for a user to design and solve their own problems.")
-        st.write("Please select a page from the sidebar.")
+        st.write("Please select a page from the navigation.")
