@@ -4,6 +4,19 @@ import streamlit as st
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Go to", ["Home", "Data Analysis", "Optimisation", "Physical Relationship Analysis"])
 
+# PAGE INFORMATION DICTIONARY
+# This dictionary maps each page to a description.
+page_info = {
+    "Home": "This is the main landing page. You can design and solve your own problems here.",
+    "Data Analysis": "This page provides data analysis tools and visualizations.",
+    "Optimisation": "This page allows you to run optimisation algorithms.",
+    "Physical Relationship Analysis": "This page contains tools to analyse physical relationships."
+}
+
+# ADDITIONAL SIDEBAR FOR PAGE INFORMATION
+st.sidebar.markdown("### Page Information")
+st.sidebar.write(page_info[page])
+
 # ROUTE TO PAGE
 if page == "Data Analysis":
     import data_analysis
