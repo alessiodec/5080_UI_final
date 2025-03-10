@@ -8,60 +8,69 @@ pages = {
     "Physical Relationship Analysis": "This page examines physical relationship data."
 }
 
-# Inject custom CSS to style the horizontal radio as a tab bar.
+# Get the current page from query parameters, defaulting to Home.
+query_params = st.experimental_get_query_params()
+if "page" in query_params:
+    current_page = query_params["page"][0]
+else:
+    current_page = "Home"
+
+# Generate the tab ribbon HTML.
+tabs_html = '<div class="tab">'
+for page in pages:
+    active_class = "active" if page == current_page else ""
+    tabs_html += f'<a class="tablinks {active_class}" href="?page={page}">{page}</a>'
+tabs_html += '</div>'
+
+# CSS styling for the tab ribbon.
 tab_css = """
 <style>
-/* Make the radio buttons horizontal */
-div.stRadio > div { 
-    display: flex; 
-    flex-direction: row;
-    justify-content: flex-start;
+.tab {
+  overflow: hidden;
+  border-bottom: 1px solid #ccc;
+  background-color: #f1f1f1;
+  margin-bottom: 20px;
 }
-/* Style the labels to look like tabs */
-div.stRadio > div > label {
-    margin-right: 20px;
-    padding: 10px 20px;
-    border: 1px solid #ddd;
-    border-bottom: none;
-    border-radius: 4px 4px 0 0;
-    background-color: #f5f5f5;
-    cursor: pointer;
+.tab a {
+  float: left;
+  border: 1px solid transparent;
+  border-bottom: none;
+  background-color: inherit;
+  padding: 14px 16px;
+  text-decoration: none;
+  font-size: 17px;
+  color: black;
+  transition: 0.3s;
 }
-/* Hover effect */
-div.stRadio > div > label:hover {
-    background-color: #e5e5e5;
+.tab a:hover {
+  background-color: #ddd;
 }
-/* Hide the default radio button */
-div.stRadio > div > input[type="radio"] {
-    display: none;
+.tab a.active {
+  border: 1px solid #ccc;
+  border-bottom: 1px solid white;
+  background-color: white;
 }
-/* Highlight the selected tab by using the adjacent sibling selector workaround.
-   Streamlit doesn't allow direct styling of the checked state, so we simulate this by re-rendering the radio
-   with the selected value having a different background.
-*/
 </style>
 """
-st.markdown(tab_css, unsafe_allow_html=True)
 
-# Create horizontal "tab" navigation using st.radio.
-# Using horizontal=True forces a row layout.
-page = st.radio("", list(pages.keys()), horizontal=True)
+# Render the tab ribbon.
+st.markdown(tab_css + tabs_html, unsafe_allow_html=True)
 
-# Render the main content based on the selected page.
-if page == "Data Analysis":
+# Render the main content based on the current page.
+if current_page == "Data Analysis":
     import data_analysis
     data_analysis.data_analysis()
-elif page == "Optimisation":
+elif current_page == "Optimisation":
     import optimisation
     optimisation.run()
-elif page == "Physical Relationship Analysis":
+elif current_page == "Physical Relationship Analysis":
     import physical_relationship_analysis
     physical_relationship_analysis.run()
 else:
     st.title("Welcome to the Main Page")
     st.write("This UI incorporates the customizable areas of this project for a user to design and solve their own problems.")
-    st.write("Please select a page from the tab navigation above.")
+    st.write("Please select a page from the tab ribbon above.")
 
-# Add a sidebar area to display the description of the current page.
+# Sidebar: Display the description for the current page.
 st.sidebar.title("Page Description")
-st.sidebar.write(pages.get(page, ""))
+st.sidebar.write(pages.get(current_page, ""))
