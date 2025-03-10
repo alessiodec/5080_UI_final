@@ -1,7 +1,20 @@
 import streamlit as st
 
+# Set page configuration first
 st.set_page_config(layout="wide")
-st.markdown("<style>.stApp { background-color: white; }</style>", unsafe_allow_html=True)
+
+# Override CSS to force a white background with black text
+st.markdown(
+    """
+    <style>
+    .stApp {
+        background-color: white;
+        color: black;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 # SIDEBAR NAVIGATION
 st.sidebar.title("Navigation")
