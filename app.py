@@ -8,18 +8,24 @@ pages = {
     "Physical Relationship Analysis": "This page examines physical relationship data."
 }
 
-# Get the current page from query parameters, defaulting to Home.
+# Get the current page from query parameters (default to Home).
 query_params = st.query_params
-if "page" in query_params:
+if "page" in query_params and query_params["page"]:
     current_page = query_params["page"][0]
 else:
     current_page = "Home"
 
-# Generate the tab ribbon HTML with target="_self" to open in the same window.
+# Generate the tab ribbon HTML.
+# Each link uses an onclick event to update the URL in the same window.
 tabs_html = '<div class="tab">'
 for page in pages:
     active_class = "active" if page == current_page else ""
-    tabs_html += f'<a class="tablinks {active_class}" href="?page={page}" target="_self">{page}</a>'
+    # Use href="javascript:void(0)" so clicking doesn't trigger default link behavior,
+    # then onclick sets window.location.href to update the query parameter.
+    tabs_html += (
+        f'<a class="tablinks {active_class}" href="javascript:void(0)" '
+        f'onclick="window.location.href=\'?page={page}\'">{page}</a>'
+    )
 tabs_html += '</div>'
 
 # CSS styling for the tab ribbon.
