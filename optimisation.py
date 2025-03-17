@@ -15,14 +15,12 @@ def optimisation_menu():
     - Select desired diameter and CO₂ pressure, then minimise CR (SR ≤ 1).  
     - This page allows you to minimise the corrosion rate by specifying the pipe diameter and CO₂ partial pressure.  
     - A differential evolution algorithm is used to optimise the remaining parameters while keeping some values fixed.  
-    - [more to be added]  
-    *Please wait up to one minute for each optimisation algorithm to be completed.*
+    - *Please wait up to one minute for each optimisation algorithm to be completed.*
     """)
-
+    
     # Button to navigate to the minimisation page.
     if st.button("Minimise CR for Given d and PCO₂"):
         st.session_state["optimisation_page"] = "minimise_cr"
-
     # This button can be used to reset back to the Optimisation main menu.
     if st.button("Go to Home"):
         st.session_state["optimisation_page"] = "optimisation"
@@ -30,7 +28,7 @@ def optimisation_menu():
 def minimise_cr_page():
     st.title("Minimise Corrosion Rate (CR)")
     st.write("Enter the required inputs below:")
-
+    
     # Input fields for pipe diameter (d) and CO₂ partial pressure (PCO₂).
     d = st.number_input(
         "Enter pipe diameter (d, m) [0.01, 1]:",
@@ -46,10 +44,10 @@ def minimise_cr_page():
         value=10000.0,
         step=1000.0
     )
-
+    
     if st.button("Run Optimisation"):
         try:
-            # Only call the function; no extra prints or summaries here.
+            # The minimise_cr function will display the final table.
             minimise_cr(d, PCO2)
         except Exception as e:
             st.error(f"Error running optimisation: {e}")
