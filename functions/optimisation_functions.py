@@ -19,7 +19,7 @@ with st.spinner("Loading dataset..."):
 XData = Data_ph5[["pH", "T", "PCO2", "v", "d"]]
 YData = Data_ph5[["CR", "SR"]]
 
-# Apply log transformation to PCO2, v, and d (as in the original notebook)
+# Apply log transformation to PCO2, v, and d
 XData["PCO2"] = np.log10(XData["PCO2"])
 XData["v"] = np.log10(XData["v"])
 XData["d"] = np.log10(XData["d"])
@@ -63,7 +63,7 @@ class MinimizeCR(ElementwiseProblem):
         d: user-defined pipe diameter (original, real-world value)
         PCO2: user-defined CO₂ partial pressure (original, real-world value)
         """
-        # Apply log transformation to both values.
+        # Apply log transformation and scaling to the fixed values.
         d_log = np.log10(d)
         d_scaled = scaler.transform(np.array([0, 0, 0, 0, d_log]).reshape(1, -1))[0][4]
 
@@ -110,44 +110,33 @@ def minimise_cr(d, PCO2):
         best_params (np.array): Full design vector (unscaled, real-world values).
         min_cr (float): Minimum corrosion rate.
     """
-    st.write("DEBUG: User input d =", d, "PCO2 =", PCO2)
-    
-    # Apply log transformation to inputs
+    # Transform inputs using log10.
     with st.spinner("Transforming inputs using log10..."):
         d_log = np.log10(d)
         PCO2_log = np.log10(PCO2)
-    st.write("DEBUG: d_log =", d_log, "PCO2_log =", PCO2_log)
 
-    # Scale the fixed values:
+    # Scale the fixed values.
     with st.spinner("Scaling fixed values..."):
         darray = scaler.transform(np.array([0, 0, 0, 0, d_log]).reshape(1, -1))
         d_scaled = darray[0][4]
         PCO2array = scaler.transform(np.array([0, 0, PCO2_log, 0, 0]).reshape(1, -1))
         PCO2_scaled = PCO2array[0][2]
-    st.write("DEBUG: d_scaled =", d_scaled, "PCO2_scaled =", PCO2_scaled)
 
-    # Create optimization problem with fixed scaled values.
+    # Set up the optimization problem.
     with st.spinner("Setting up the optimization problem..."):
         problem = MinimizeCR(d, PCO2)
 
-    # Run optimization algorithm.
+    # Run the optimization algorithm (Differential Evolution).
     with st.spinner("Running optimization algorithm (DE)..."):
         algorithmDE = DE(pop_size=30, sampling=LHS(), dither="vector")
-        # Terminate after 300 evaluations (similar to the notebook)
         result = minimizepymoo(problem, algorithmDE, verbose=True, termination=("n_eval", 300))
 
-    st.write("DEBUG: Optimization result:", result)
-
+    # Process optimization results.
     with st.spinner("Processing optimization results..."):
         optimized_vars = np.atleast_1d(result.X).flatten()
-        st.write("DEBUG: optimized_vars =", optimized_vars, "Shape:", optimized_vars.shape)
 
         if optimized_vars.size == 1:
-            try:
-                optimized_vars = np.array(result.X[0]).flatten()
-                st.write("DEBUG: Rewrapped optimized_vars =", optimized_vars, "Shape:", optimized_vars.shape)
-            except Exception as e:
-                raise ValueError("Optimization result structure is not as expected: " + str(result.X))
+            optimized_vars = np.array(result.X[0]).flatten()
 
         if optimized_vars.size != 3:
             raise ValueError(f"Expected optimized_vars to have 3 elements, got {optimized_vars.size}")
@@ -162,13 +151,8 @@ def minimise_cr(d, PCO2):
         best_params = ReverseScalingandLog10(full_design_scaled)
         min_cr = result.F[0]
 
-    st.write("DEBUG: best_params =", best_params)
-    st.write("DEBUG: min_cr =", min_cr)
-
-    st.write("=================================================================================")
     st.write("Optimisation Summary:")
     st.write("Final Optimized CR =", min_cr)
     st.write("Optimized Design Vector (pH, T, CO₂, v, d) =", best_params)
-    st.write("=================================================================================")
 
     return best_params, min_cr
