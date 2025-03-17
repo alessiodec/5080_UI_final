@@ -21,9 +21,9 @@ else:
     # HOME PAGE TEXT
     st.title("Machine Learning-Enabled Optimisation of Industrial Flow Systems - UI Tool")
     st.write("""
-This tool will guide you through the ML framework developed to analyse two industrial energy flow systems.
-The framework is composed of three sections: surrogate modelling, multi-objective optimisation, and symbolic regression.
-The first flow system is for a heatsink, where the available dataset consists of two geometric input parameters that yield outputs for pressure drop and thermal resistance.
-The second flow system involves the multi-physics software Leeds COMSOL, used to predict corrosion rate and saturation ratio in geothermal steel pipes.
+This tool will guide you through the ML framework developed to analyse two industrial energy flow systems.\n
+The framework is composed of three sections: surrogate modelling, multi-objective optimisation, and symbolic regression.\n
+The first flow system is for a heatsink, where the available dataset consists of two geometric input parameters that yield outputs for pressure drop and thermal resistance.\n
+The second flow system involves the multi-physics software Leeds COMSOL, used to predict corrosion rate and saturation ratio in geothermal steel pipes.\n
 Please select a page from the sidebar.
     """)
