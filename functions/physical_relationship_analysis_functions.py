@@ -54,9 +54,13 @@ def run_heatsink_analysis_and_evolution(pop_size, pop_retention, num_iterations)
 
     st.write("🚀 Initializing Population...")
     with st.spinner("Generating initial population..."):
+        import time
+        init_start = time.time()
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", RuntimeWarning)
             population = Engine.initialize_population(verbose=1)
+        init_time = time.time() - init_start
+        st.write("Total time to generate initial population: {:.2f} seconds".format(init_time))
 
     Engine.evaluate_population(population)
 
@@ -69,6 +73,37 @@ def run_heatsink_analysis_and_evolution(pop_size, pop_retention, num_iterations)
     iterations = []
 
     start_time = time.time()
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)
+        for i in range(num_iterations):
+            population = Engine.generate_new_population(population=population.copy(), verbose=1)
+            avg_fitness, avg_complexity, optimal_fitness = Engine.evaluate_population(population)
+
+            avg_fitness_arr.append(avg_fitness)
+            avg_complexity_arr.append(avg_complexity)
+            best_fitness_arr.append(optimal_fitness)
+            iterations.append(i + 1)
+
+            fig, ax = plt.subplots(figsize=(8, 6))
+            ax.plot(iterations, avg_fitness_arr, 'bo-', label="Avg Fitness")
+            ax.plot(iterations, avg_complexity_arr, 'ro-', label="Complexity")
+            ax.plot(iterations, best_fitness_arr, 'go-', label="Best Fitness")
+            ax.set_xlabel("Iteration")
+            ax.set_ylabel("Fitness - 1-$R^2$")
+            ax.set_yscale("log")
+            ax.legend()
+            ax.set_title("Population Metrics Over Iterations")
+            chart_placeholder.pyplot(fig)
+
+            time.sleep(0.5)  # adjust to ensure each iteration is visible
+
+    total_evo_time = time.time() - start_time
+    avg_time = total_evo_time / num_iterations
+    st.write("Average time per iteration: {:.2f} seconds".format(avg_time))
+
+    st.success("✅ Heatsink Analysis and Evolution Completed!")
+
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", RuntimeWarning)
