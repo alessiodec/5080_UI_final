@@ -8,7 +8,7 @@ from pymoo.algorithms.soo.nonconvex.de import DE
 from pymoo.operators.sampling.lhs import LHS
 import streamlit as st
 
-# data loading and preprocessing
+# Data loading and preprocessing
 csv_url = "https://drive.google.com/uc?export=download&id=10GtBpEkWIp4J-miPzQrLIH6AWrMrLH-o"
 Data_ph5 = pd.read_csv(csv_url)
 XData = Data_ph5[["pH", "T", "PCO2", "v", "d"]]
@@ -19,9 +19,10 @@ XData["d"] = np.log10(XData["d"])
 XData = XData.dropna()
 YData = YData.dropna()
 
-# load models
-CorrosionModel = load_model("models/CorrosionRateModel.keras")
-SaturationModel = load_model("models/SaturationRateModel.keras")
+# Load models with a spinner
+with st.spinner("Loading corrosion and saturation models..."):
+    CorrosionModel = load_model("models/CorrosionRateModel.keras")
+    SaturationModel = load_model("models/SaturationRateModel.keras")
 
 # Create and fit scaler on the input data
 scaler = preprocessing.StandardScaler()
@@ -96,51 +97,55 @@ def minimise_cr(d, PCO2):
         min_cr (float): Minimum corrosion rate.
     """
     st.write("DEBUG: User input d =", d, "PCO2 =", PCO2)
-    # Apply log transformation to inputs
-    d_log = np.log10(d)
-    PCO2_log = np.log10(PCO2)
-    st.write("DEBUG: d_log =", d_log, "PCO2_log =", PCO2_log)
     
-    # Scale the fixed values:
-    darray = scaler.transform(np.array([0, 0, 0, 0, d_log]).reshape(1, -1))
-    d_scaled = darray[0][4]
-    PCO2array = scaler.transform(np.array([0, 0, PCO2_log, 0, 0]).reshape(1, -1))
-    PCO2_scaled = PCO2array[0][2]
-    st.write("DEBUG: d_scaled =", d_scaled, "PCO2_scaled =", PCO2_scaled)
+    with st.spinner("Applying log transformation to inputs..."):
+        d_log = np.log10(d)
+        PCO2_log = np.log10(PCO2)
+        st.write("DEBUG: d_log =", d_log, "PCO2_log =", PCO2_log)
     
-    # Create optimization problem with fixed scaled values.
-    problem = MinimizeCR(d, PCO2)
-    algorithmDE = DE(pop_size=30, sampling=LHS(), dither="vector")
-    # Terminate after 300 evaluations (similar to the notebook)
-    result = minimizepymoo(problem, algorithmDE, verbose=True, termination=("n_eval", 300))
+    with st.spinner("Scaling the fixed values..."):
+        darray = scaler.transform(np.array([0, 0, 0, 0, d_log]).reshape(1, -1))
+        d_scaled = darray[0][4]
+        PCO2array = scaler.transform(np.array([0, 0, PCO2_log, 0, 0]).reshape(1, -1))
+        PCO2_scaled = PCO2array[0][2]
+        st.write("DEBUG: d_scaled =", d_scaled, "PCO2_scaled =", PCO2_scaled)
+    
+    with st.spinner("Setting up the optimization problem..."):
+        problem = MinimizeCR(d, PCO2)
+    
+    with st.spinner("Running the optimization algorithm (DE) - please wait..."):
+        algorithmDE = DE(pop_size=30, sampling=LHS(), dither="vector")
+        # Terminate after 300 evaluations
+        result = minimizepymoo(problem, algorithmDE, verbose=True, termination=("n_eval", 300))
     
     st.write("DEBUG: Optimization result:", result)
     
-    optimized_vars = np.atleast_1d(result.X).flatten()
-    st.write("DEBUG: optimized_vars =", optimized_vars, "Shape:", optimized_vars.shape)
+    with st.spinner("Processing optimization results..."):
+        optimized_vars = np.atleast_1d(result.X).flatten()
+        st.write("DEBUG: optimized_vars =", optimized_vars, "Shape:", optimized_vars.shape)
     
-    if optimized_vars.size == 1:
-        try:
-            optimized_vars = np.array(result.X[0]).flatten()
-            st.write("DEBUG: Rewrapped optimized_vars =", optimized_vars, "Shape:", optimized_vars.shape)
-        except Exception as e:
-            raise ValueError("Optimization result structure is not as expected: " + str(result.X))
+        if optimized_vars.size == 1:
+            try:
+                optimized_vars = np.array(result.X[0]).flatten()
+                st.write("DEBUG: Rewrapped optimized_vars =", optimized_vars, "Shape:", optimized_vars.shape)
+            except Exception as e:
+                raise ValueError("Optimization result structure is not as expected: " + str(result.X))
     
-    if optimized_vars.size != 3:
-        raise ValueError(f"Expected optimized_vars to have 3 elements, got {optimized_vars.size}")
+        if optimized_vars.size != 3:
+            raise ValueError(f"Expected optimized_vars to have 3 elements, got {optimized_vars.size}")
     
-    full_design_scaled = np.zeros(5)
-    full_design_scaled[0] = optimized_vars[0]   # pH
-    full_design_scaled[1] = optimized_vars[1]   # T
-    full_design_scaled[2] = PCO2_scaled         # fixed, scaled PCO2
-    full_design_scaled[3] = optimized_vars[2]   # v
-    full_design_scaled[4] = d_scaled            # fixed, scaled d
+        full_design_scaled = np.zeros(5)
+        full_design_scaled[0] = optimized_vars[0]   # pH
+        full_design_scaled[1] = optimized_vars[1]   # T
+        full_design_scaled[2] = PCO2_scaled         # fixed, scaled PCO2
+        full_design_scaled[3] = optimized_vars[2]   # v
+        full_design_scaled[4] = d_scaled            # fixed, scaled d
     
-    best_params = ReverseScalingandLog10(full_design_scaled)
-    min_cr = result.F[0]
+        best_params = ReverseScalingandLog10(full_design_scaled)
+        min_cr = result.F[0]
     
-    st.write("DEBUG: best_params =", best_params)
-    st.write("DEBUG: min_cr =", min_cr)
+        st.write("DEBUG: best_params =", best_params)
+        st.write("DEBUG: min_cr =", min_cr)
     
     st.write("=================================================================================")
     st.write("Optimisation Summary:")
