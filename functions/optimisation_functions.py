@@ -15,7 +15,6 @@ csv_url = "https://drive.google.com/uc?export=download&id=10GtBpEkWIp4J-miPzQrLI
 with st.spinner("Loading dataset..."):
     Data_ph5 = pd.read_csv(csv_url)
 
-# Keep only the data of interest
 XData = Data_ph5[["pH", "T", "PCO2", "v", "d"]]
 YData = Data_ph5[["CR", "SR"]]
 
@@ -30,8 +29,9 @@ YData = YData.dropna()
 # Load pre-trained models
 # -------------------------------------------------------------------
 with st.spinner("Loading pre-trained models..."):
-    CorrosionModel = load_model("models/CorrosionRateModel.keras")
-    SaturationModel = load_model("models/SaturationModel.keras")
+    CorrosionModel = load_model("models/CorrosionRateModel.keras", compile=False)
+    # Ensure the correct filename is used (adjust if necessary)
+    SaturationModel = load_model("models/SaturationRateModel.keras", compile=False)
 
 # -------------------------------------------------------------------
 # Create and fit a scaler on the input data (all 5 features)
@@ -53,7 +53,8 @@ def ReverseScalingandLog10(optimisationResult):
 
 # -------------------------------------------------------------------
 # Define the optimization problem using pymoo.
-# [pH, T, PCO2, v, d], but we fix PCO2 and d (scaled), optimizing pH, T, v.
+# The full design vector is: [pH, T, PCO2, v, d]
+# We fix PCO2 and d (scaled) and optimize over pH, T, and v.
 # -------------------------------------------------------------------
 class MinimizeCR(ElementwiseProblem):
     def __init__(self, d, PCO2):
@@ -66,7 +67,7 @@ class MinimizeCR(ElementwiseProblem):
         self.fixed_d = d_scaled
         self.fixed_PCO2 = PCO2_scaled
 
-        # pH (0), T (1), v (3)
+        # Bounds for pH (index 0), T (index 1), and v (index 3)
         xl = np.array([
             XDataScaled[:, 0].min(),
             XDataScaled[:, 1].min(),
@@ -84,21 +85,21 @@ class MinimizeCR(ElementwiseProblem):
         full_design = np.zeros(5)
         full_design[0] = X[0]  # pH
         full_design[1] = X[1]  # T
-        full_design[2] = self.fixed_PCO2
+        full_design[2] = self.fixed_PCO2  # fixed, scaled PCO2
         full_design[3] = X[2]  # v
-        full_design[4] = self.fixed_d
+        full_design[4] = self.fixed_d  # fixed, scaled d
         full_design = full_design.reshape(1, -1)
 
         corrosionResult = CorrosionModel.predict(full_design, verbose=False).flatten()
         saturationResult = SaturationModel.predict(full_design, verbose=False).flatten()
 
         out["F"] = corrosionResult
-        # Constrain SR <= 1
         out["G"] = -10 ** saturationResult + 1
 
 # -------------------------------------------------------------------
-# Minimise CR function
-# Takes user inputs d, PCO2, returns only a final table with inputs + CR, SR
+# Define the minimise_cr function.
+# User inputs: d and PCO2 in original units.
+# Displays one final table with all values.
 # -------------------------------------------------------------------
 def minimise_cr(d, PCO2):
     with st.spinner("Transforming inputs using log10..."):
@@ -120,21 +121,16 @@ def minimise_cr(d, PCO2):
 
     with st.spinner("Processing optimization results..."):
         optimized_vars = np.atleast_1d(result.X).flatten()
-
-        # Edge case for pymoo result
         if optimized_vars.size == 1:
             optimized_vars = np.array(result.X[0]).flatten()
-
         if optimized_vars.size != 3:
             raise ValueError(f"Expected 3 elements, got {optimized_vars.size}")
-
         full_design_scaled = np.zeros(5)
         full_design_scaled[0] = optimized_vars[0]  # pH
         full_design_scaled[1] = optimized_vars[1]  # T
-        full_design_scaled[2] = PCO2_scaled
+        full_design_scaled[2] = PCO2_scaled        # fixed, scaled PCO2
         full_design_scaled[3] = optimized_vars[2]  # v
-        full_design_scaled[4] = d_scaled
-
+        full_design_scaled[4] = d_scaled           # fixed, scaled d
         best_params = ReverseScalingandLog10(full_design_scaled)
 
     with st.spinner("Computing final model predictions..."):
@@ -145,20 +141,17 @@ def minimise_cr(d, PCO2):
     # Final vector: [pH, T, CO₂, v, d, CR, SR]
     final_vector = np.concatenate((best_params.flatten(), [final_cr, final_sr]))
 
-    # Column headers with units where applicable
-    # Adjust units as appropriate for your data
-    columns_with_units = [
+    # Column headers with units (adjust units as needed)
+    column_headers = [
         "pH (-)",
         "T (°C)",
-        "CO₂ (Pa)",
+        "PCO₂ (Pa)",
         "v (m/s)",
         "d (m)",
         "CR (mm/year)",
         "SR (-)"
     ]
-
-    final_df = pd.DataFrame([final_vector], columns=columns_with_units)
+    final_df = pd.DataFrame([final_vector], columns=column_headers)
     st.table(final_df)
 
-    # We return nothing extra here, to avoid additional prints
     return best_params, final_cr
