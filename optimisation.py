@@ -18,10 +18,8 @@ def optimisation_menu():
     - *Please wait up to one minute for each optimisation algorithm to be completed.*
     """)
     
-    # Button to navigate to the minimisation page.
     if st.button("Minimise CR for Given d and PCO₂"):
         st.session_state["optimisation_page"] = "minimise_cr"
-    # This button can be used to reset back to the Optimisation main menu.
     if st.button("Go to Home"):
         st.session_state["optimisation_page"] = "optimisation"
 
@@ -47,7 +45,7 @@ def minimise_cr_page():
     
     if st.button("Run Optimisation"):
         try:
-            # The minimise_cr function will display the final table.
+            # Call the optimisation function; it will display the final table.
             minimise_cr(d, PCO2)
         except Exception as e:
             st.error(f"Error running optimisation: {e}")
