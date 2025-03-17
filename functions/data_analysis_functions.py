@@ -95,8 +95,8 @@ def pca_plot():
     # return explained_variance
     # my own notes**
     st.write("""**Interpreting PCA** \n
-        **Scree Plot**: A scree plot shows the variance explained by each principal component, and you typically look for the "elbow"—the point where additional components offer diminishing returns—to decide how many components to retain.
-        **PCA Loadings Heatmap**: The heatmap displays how much each original feature contributes to each principal component; darker or more intense values indicate a stronger influence on that component.
+    **Scree Plot**: A scree plot shows the variance explained by each principal component, and you typically look for the "elbow"—the point where additional components offer diminishing returns—to decide how many components to retain. \n
+    **PCA Loadings Heatmap**: The heatmap displays how much each original feature contributes to each principal component; darker or more intense values indicate a stronger influence on that component. \n
         """)
 
 # cr contour plot
