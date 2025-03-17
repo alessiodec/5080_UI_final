@@ -62,7 +62,7 @@ def heatsink_page():
 
     st.write("Enter parameters for analysis:")
     pop_size = st.number_input("Population Size:", min_value=10, value=100, step=10)
-    st.write("**Retention Size"": Number of top-performing individuals from the current generation that are preserved unchanged and carried over to the next generation, used for breeding.")
+    st.write("**Retention Size**": Number of top-performing individuals from the current generation that are preserved unchanged and carried over to the next generation, used for breeding.")
     pop_retention = st.number_input("Population Retention Size:", min_value=1, value=20, step=1)
     num_iterations = st.number_input("Number of Iterations:", min_value=1, value=10, step=1)
 
