@@ -46,8 +46,8 @@ def heatsink_page():
     - Uses the heatsink dataset to perform an evolutionary algorithm to breed well-performing candidates from the population
     - User input for population size, retention size, and the number of iterations
     - Real-time plotting of fitness and complexity throughout iterations
-    - Pareto front visualization (planned)
-    - Display of the best-fit equation found
+    - Pareto front visualisation (planned)
+    - Display of the best-fit equation found (planned)
     """)
 
     # Automatically load heatsink data if not already loaded.
@@ -61,8 +61,9 @@ def heatsink_page():
             return
 
     st.write("Enter parameters for analysis:")
-    pop_size = st.number_input("Population Size:", min_value=10, value=200, step=10)
-    pop_retention = st.number_input("Population Retention Size:", min_value=1, value=50, step=1)
+    pop_size = st.number_input("Population Size:", min_value=10, value=100, step=10)
+    st.write("nNumber of top-performing individuals from the current generation that are preserved unchanged and carried over to the next generation.")
+    pop_retention = st.number_input("Population Retention Size:", min_value=1, value=20, step=1)
     num_iterations = st.number_input("Number of Iterations:", min_value=1, value=10, step=1)
 
     if st.button("Run Analysis and Evolution"):
