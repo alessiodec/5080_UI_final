@@ -8,6 +8,8 @@ from pymoo.algorithms.soo.nonconvex.de import DE
 from pymoo.operators.sampling.lhs import LHS
 import streamlit as st
 
+st.write(**Please Allow up to one Minute for the Optimisation Process to Complete**")
+
 # -------------------------------------------------------------------
 # Load dataset and prepare data
 # -------------------------------------------------------------------
