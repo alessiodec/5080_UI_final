@@ -27,7 +27,7 @@ def safe_rerun():
 # DEF PAGES
 def main_menu():
     st.title("Data Analysis and Surrogate Modelling")
-    st.write("This section comprises of geenral statistical analysis of the corrosion dataset, as well as contour plots for each input pair against each outputs (*see more detail on next pg*).")
+    st.write("This section comprises of geenral statistical analysis of the corrosion dataset, as well as contour plots for each input pair against each outputs (*see more detail on 'contour plots' pg*).")
     st.write("**Select an analysis category**")
     
     # SUBPAGE OPTIONS
@@ -68,7 +68,10 @@ def statistical_analysis_menu():
 def contour_plots_menu():
     st.title("Contour Plots")
 
-    st.write("Plots 5x5 grid on any 2 pairs of input variables against selected output variable (CR//SR). The reamaining 3 inputs are kept at their midpoints using the DNN.")
+    st.write("""
+    Plots a 5x5 grid of contour plots for any chosen pair of input variables against the selected output variable (either CR or SR). The remaining three inputs are held constant at their median values, representing typical operating conditions. A pre-trained DNN model then predicts the output across this grid, allowing you to visually assess how variations in the two selected inputs influence the output, while the other inputs remain fixed.
+    """)
+
     
     if st.button("Corrosion Rate"):
         st.session_state["data_analysis_page"] = "corrosion_rate"
