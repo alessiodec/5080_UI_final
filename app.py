@@ -28,6 +28,6 @@ The framework is composed of three sections: surrogate modelling, multi-objectiv
  - **Symbollic Regression**: Utilises methods like genetic programming to automatically generate interpretable mathematical expressions that accurately capture the underlying data relationships. \n
 The first flow system is for a heatsink, where the available dataset consists of two geometric input parameters that yield outputs for pressure drop and thermal resistance.\n
 The second flow system involves the multi-physics software Leeds COMSOL, used to predict corrosion rate and saturation ratio in geothermal steel pipes for five inputs.\n
-The aim of this UI is to incorporate the customisable areas of this project to allow the user to gain an ehnaced understanding of the methods at hand.
+The aim of this UI is to incorporate the customisable areas of this project to allow the user to gain an ehnaced understanding of the methods at hand. \n
 Please select a page from the sidebar.
     """)
