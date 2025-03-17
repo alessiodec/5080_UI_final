@@ -31,8 +31,8 @@ def minimise_cr_page():
     st.title("Minimise Corrosion Rate (CR)")
     st.write("Enter the required inputs below:")
     # Input fields for pipe diameter (d) and CO₂ partial pressure (PCO₂).
-    d = st.number_input("Enter pipe diameter (d, m) [0.01, 1]:", min_value=0.1, value=1.0, step=0.1)
-    PCO2 = st.number_input("Enter CO₂ pressure (PCO₂, Pa) [10000, 99999]:", min_value=0.1, value=1.0, step=0.1)
+    d = st.number_input("Enter pipe diameter (d, m) [0.01, 1]:", min_value=0.01, max_value=1, value = 0.01, step=0.01)
+    PCO2 = st.number_input("Enter CO₂ pressure (PCO₂, Pa) [10000, 99999]:", min_value=10000, max_value = 99999, value=10000, step=1000)
     if st.button("Run Optimisation"):
         try:
             best_params, min_cr = minimise_cr(d, PCO2)
