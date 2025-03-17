@@ -146,13 +146,16 @@ def minimise_cr(d, PCO2):
     column_headers = [
         "pH (-)",
         "T (°C)",
-        "PCO₂ (Pa)",
+        "PCO₂ (Pa) *fixed*",
         "v (m/s)",
-        "d (m)",
+        "d (m) *fixed*",
         "CR (mm/year)",
         "SR (-)"
     ]
     final_df = pd.DataFrame([final_vector], columns=column_headers)
+
+    st.write("Optimised Design Vector with Outputs:")
+    
     st.table(final_df)
 
     return best_params, final_cr
