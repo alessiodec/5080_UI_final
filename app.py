@@ -20,8 +20,8 @@ elif page == "Physical Relationship Analysis":
 else:
     # HOME PAGE TEXT
     st.title("Machine Learning-Enabled Optimisation of Industrial Flow Systems - UI Tool")
-    st.write("This tool will guide you through the ML framework developed to analyse two industrial energy flow systems.")
-    st.write("The framework is composed of three sections: surrogate modelling, multi-objective optimisation, and symbollic regression.")
-    st.write("The first flow system is a for a heatsink, where the avaliable dataset consists of two geoemetric input parameters, and outputting pressure drop and thermal resistance.")
-    st.write("The second flow system is that of a multi-physics software, Leeds COMSOL, used to predict corrosion rate and saturation ratio in gheothermal steel pipes. ")
+    st.write("This tool guides you through the ML framework developed to analyse two industrial energy flow systems.")
+    st.write("The framework comprises three key sections: surrogate modelling, multi-objective optimisation, and symbolic regression.")
+    st.write("The first flow system pertains to a heatsink, with a dataset containing two geometric input parameters that yield outputs for pressure drop and thermal resistance.")
+    st.write("The second flow system utilises the multi-physics software Leeds COMSOL to predict corrosion rate and saturation ratio in geothermal steel pipes.")
     st.write("Please select a page from the sidebar.")
