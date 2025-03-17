@@ -18,6 +18,8 @@ def optimisation_menu():
     A differential evolution algorithm is used to optimise the remaining parameters while keeping some values fixed. \n
     - [more to be added]
     """)
+
+    st.write("Please wait up to one minute for each optimisation algorithm to be completed.")
     
     # Button to navigate to the minimisation page.
     if st.button("Minimise CR for Given d and PCO₂"):
