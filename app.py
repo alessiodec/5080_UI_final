@@ -23,7 +23,7 @@ else:
     st.write("""
 This tool will guide you through the ML framework developed to analyse two industrial energy flow systems.\n
 The framework is composed of three sections: surrogate modelling, multi-objective optimisation, and symbolic regression.\n
-    **Surrogate Modelling**: \n
+    *Surrogate Modelling*: \n
     **Multi-Objective Optimisation**: \n
     **Symbollic Regression**: \n
 The first flow system is for a heatsink, where the available dataset consists of two geometric input parameters that yield outputs for pressure drop and thermal resistance.\n
