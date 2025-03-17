@@ -8,8 +8,6 @@ from pymoo.algorithms.soo.nonconvex.de import DE
 from pymoo.operators.sampling.lhs import LHS
 import streamlit as st
 
-st.write(**Please Allow up to one Minute for the Optimisation Process to Complete**")
-
 # -------------------------------------------------------------------
 # Load dataset and prepare data
 # -------------------------------------------------------------------
@@ -48,7 +46,7 @@ with st.spinner("Fitting scaler on input data..."):
 def ReverseScalingandLog10(optimisationResult):
     result_reshaped = optimisationResult.reshape(1, -1)
     real_values = scaler.inverse_transform(result_reshaped)
-    # For columns 2,3,4 (PCO2, v, d), reverse the log10 transform.
+    # Reverse the log transformation for columns 2,3,4 (PCO2, v, d)
     real_values[:, 2:] = 10 ** real_values[:, 2:]
     return real_values
 
@@ -59,7 +57,6 @@ def ReverseScalingandLog10(optimisationResult):
 # -------------------------------------------------------------------
 class MinimizeCR(ElementwiseProblem):
     def __init__(self, d, PCO2):
-        # Transform and scale the fixed values.
         d_log = np.log10(d)
         d_scaled = scaler.transform(np.array([0, 0, 0, 0, d_log]).reshape(1, -1))[0][4]
 
@@ -69,20 +66,19 @@ class MinimizeCR(ElementwiseProblem):
         self.fixed_d = d_scaled
         self.fixed_PCO2 = PCO2_scaled
 
-        # Define bounds for design variables: pH (index 0), T (index 1), and v (index 3)
+        # Bounds for design variables: pH (index 0), T (index 1), and v (index 3)
         xl = np.array([XDataScaled[:, 0].min(), XDataScaled[:, 1].min(), XDataScaled[:, 3].min()])
         xu = np.array([XDataScaled[:, 0].max(), XDataScaled[:, 1].max(), XDataScaled[:, 3].max()])
 
         super().__init__(n_var=3, n_obj=1, n_ieq_constr=1, xl=xl, xu=xu)
 
     def _evaluate(self, X, out, *args, **kwargs):
-        # Reconstruct full design vector: [pH, T, fixed_PCO2, v, fixed_d]
         full_design = np.zeros(5)
-        full_design[0] = X[0]        # pH
-        full_design[1] = X[1]        # T
+        full_design[0] = X[0]       # pH
+        full_design[1] = X[1]       # T
         full_design[2] = self.fixed_PCO2  # fixed, scaled PCO2
-        full_design[3] = X[2]        # v
-        full_design[4] = self.fixed_d      # fixed, scaled d
+        full_design[3] = X[2]       # v
+        full_design[4] = self.fixed_d     # fixed, scaled d
         full_design = full_design.reshape(1, -1)
 
         corrosionResult = CorrosionModel.predict(full_design, verbose=False).flatten()
@@ -97,6 +93,9 @@ class MinimizeCR(ElementwiseProblem):
 # Displays one final table with all values.
 # -------------------------------------------------------------------
 def minimise_cr(d, PCO2):
+    # Display a message that the process may take up to one minute.
+    st.write("Please Allow up to one Minute for the Optimisation Process to Complete")
+
     with st.spinner("Transforming inputs using log10..."):
         d_log = np.log10(d)
         PCO2_log = np.log10(PCO2)
@@ -126,15 +125,11 @@ def minimise_cr(d, PCO2):
         full_design_scaled[2] = PCO2_scaled         # fixed, scaled PCO2
         full_design_scaled[3] = optimized_vars[2]   # v
         full_design_scaled[4] = d_scaled            # fixed, scaled d
-
-        # Invert the scaling; then reverse the log10 transform for columns 2-4.
         best_params = ReverseScalingandLog10(full_design_scaled)
 
     with st.spinner("Computing final model predictions..."):
-        # IMPORTANT:
-        # best_params is in original units (for columns 2,3,4 these are NOT in log-space).
-        # The scaler was fitted on log-transformed inputs.
-        # So, create a version of best_params with columns 2-4 converted back to log10.
+        # best_params is in original units; since scaler was fitted on log-transformed inputs,
+        # convert columns 2-4 back to log10.
         best_params_log = best_params.copy()
         best_params_log[:, 2:] = np.log10(best_params_log[:, 2:])
         scaled_final = scaler.transform(best_params_log)
@@ -143,6 +138,9 @@ def minimise_cr(d, PCO2):
 
     # Create final vector: [pH, T, CO₂, v, d, CR, SR]
     final_vector = np.concatenate((best_params.flatten(), [final_cr, final_sr]))
+
+    # Display a message before the final table.
+    st.write("Final Design Vector (Input variables and predicted outputs):")
 
     # Column headers with units (adjust units as needed)
     column_headers = [
@@ -155,9 +153,6 @@ def minimise_cr(d, PCO2):
         "SR (-)"
     ]
     final_df = pd.DataFrame([final_vector], columns=column_headers)
-
-    st.write("Optimised Design Vector with Outputs:")
-    
     st.table(final_df)
 
     return best_params, final_cr
