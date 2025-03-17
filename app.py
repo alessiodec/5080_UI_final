@@ -9,6 +9,7 @@ page = st.sidebar.radio("Go to", ["Home", "Data Analysis // Surrogate Modelling"
 
 # ROUTE TO PAGE
 if page == "Data Analysis // Surrogate Modelling":
+    st.session_state["data_analysis_page"] = "main"  # Reset to main menu
     import data_analysis
     data_analysis.data_analysis()
 elif page == "Optimisation":
