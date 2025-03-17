@@ -5,10 +5,10 @@ st.set_page_config(layout="wide")
 
 # SIDEBAR NAVIGATION
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Home", "Data Analysis", "Optimisation", "Physical Relationship Analysis"])
+page = st.sidebar.radio("Go to", ["Home", "Data Analysis // Surrogate Modelling", "Optimisation", "Physical Relationship Analysis"])
 
 # ROUTE TO PAGE
-if page == "Data Analysis":
+if page == ""Data Analysis // Surrogate Modelling":
     import data_analysis
     data_analysis.data_analysis()
 elif page == "Optimisation":
