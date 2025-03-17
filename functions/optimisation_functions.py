@@ -134,7 +134,6 @@ def minimise_cr(d, PCO2):
     # Process optimization results.
     with st.spinner("Processing optimization results..."):
         optimized_vars = np.atleast_1d(result.X).flatten()
-
         if optimized_vars.size == 1:
             optimized_vars = np.array(result.X[0]).flatten()
 
@@ -151,8 +150,18 @@ def minimise_cr(d, PCO2):
         best_params = ReverseScalingandLog10(full_design_scaled)
         min_cr = result.F[0]
 
+    # Compute final predictions using the final design vector.
+    with st.spinner("Computing final model predictions..."):
+        # Scale best_params to obtain predictions from the models.
+        scaled_final = scaler.transform(best_params)
+        final_cr = CorrosionModel.predict(scaled_final, verbose=False).flatten()[0]
+        final_sr = SaturationModel.predict(scaled_final, verbose=False).flatten()[0]
+
+    # Concatenate the input design vector and the predicted outputs.
+    # The final vector is: [pH, T, CO₂, v, d, CR, SR]
+    final_vector = np.concatenate((best_params.flatten(), np.array([final_cr, final_sr])))
+
     st.write("Optimisation Summary:")
-    st.write("Final Optimized CR =", min_cr)
-    st.write("Optimized Design Vector (pH, T, CO₂, v, d) =", best_params)
+    st.write("Final Vector (Input variables and predicted outputs):", final_vector)
 
     return best_params, min_cr
