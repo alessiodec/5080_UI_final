@@ -57,6 +57,17 @@ def load_preprocess_data():
 
 # pca plot
 def pca_plot():
+
+    st.markdown("""\
+    **Interpreting PCA:**
+    
+    **Scree Plot:**  
+    A scree plot shows the variance explained by each principal component. Look for the "elbow"—the point where additional components offer diminishing returns—to decide how many components to retain.
+    
+    **PCA Loadings Heatmap:**  
+    This heatmap displays how much each original feature contributes to each principal component; darker or more intense values indicate a stronger influence on that component.
+    """)
+    
     csv_url = "https://drive.google.com/uc?export=download&id=10GtBpEkWIp4J-miPzQrLIH6AWrMrLH-o"
     df = pd.read_csv(csv_url)
     pca_data = df.iloc[:, [0, 1, 2, 3, 4]]
@@ -93,11 +104,6 @@ def pca_plot():
             'cumulative_variance_ratio': results['cumulative_variance_ratio'][i]
         }
     # return explained_variance
-    # my own notes**
-    st.write("""**Interpreting PCA** \n
-    **Scree Plot**: A scree plot shows the variance explained by each principal component, and you typically look for the "elbow"—the point where additional components offer diminishing returns—to decide how many components to retain. \n
-    **PCA Loadings Heatmap**: The heatmap displays how much each original feature contributes to each principal component; darker or more intense values indicate a stronger influence on that component. \n
-        """)
 
 # cr contour plot
 def plot_5x5_cr(X, scaler_X, cr_model):
