@@ -33,5 +33,5 @@ The aim of this UI is to incorporate the customisable areas of this project to a
 \n   
 \n   
 \n
-*note: in the event of no response from pressing any buttons, press twice to move to the desired page, or refresh the app to go back to home*"
+*note: in the event of no response from pressing any buttons, press twice to move to the desired page, or refresh the app to go back to home*
     """)
