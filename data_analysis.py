@@ -69,7 +69,8 @@ def contour_plots_menu():
     st.title("Contour Plots")
 
     st.write("""
-    Plots a 5x5 grid of contour plots for any chosen pair of input variables against the selected output variable (either CR or SR). The remaining three inputs are held constant at their median values, representing typical operating conditions. A pre-trained DNN model then predicts the output across this grid, allowing you to visually assess how variations in the two selected inputs influence the output, while the other inputs remain fixed.
+    Plots a 5x5 grid of contour plots for any chosen pair of input variables against the selected output variable (either CR or SR). The remaining three inputs are held constant at their median values, representing typical operating conditions. A pre-trained DNN model then predicts the output across this grid, allowing you to visually assess how variations in the two selected inputs influence the output, while the other inputs remain fixed. \n
+    Please allow up to 20 seconds for the plots to be generated. \n
     """)
 
     
