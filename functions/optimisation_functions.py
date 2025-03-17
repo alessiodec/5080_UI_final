@@ -165,8 +165,8 @@ def minimise_cr(d, PCO2):
     st.write("Optimisation Summary:")
     st.write("Final Vector (Input variables and predicted outputs):", final_vector)
     # Create a table with column headers.
-    final_names = ["pH", "T", "CO₂", "v", "d", "CR", "SR"]
-    final_df = pd.DataFrame([dict(zip(final_names, final_vector))])
-    st.table(final_df)
+    #final_names = ["pH", "T", "CO₂", "v", "d", "CR", "SR"]
+    #final_df = pd.DataFrame([dict(zip(final_names, final_vector))])
+    #st.table(final_df)
 
     return best_params, min_cr
