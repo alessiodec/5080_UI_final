@@ -26,8 +26,9 @@ def safe_rerun():
 
 # DEF PAGES
 def main_menu():
-    st.title("Data Analysis")
-    st.write("Select an analysis category:")
+    st.title("Data Analysis and Surrogate Modelling")
+    st.write("This section comprises of geenral statistical analysis of the corrosion dataset, as well as contour plots for each input pair against each outputs (*see more detail on next pg*).")
+    st.write("**Select an analysis category**")
     
     # SUBPAGE OPTIONS
     col1, col2 = st.columns(2)
