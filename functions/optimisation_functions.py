@@ -30,7 +30,6 @@ YData = YData.dropna()
 # -------------------------------------------------------------------
 with st.spinner("Loading pre-trained models..."):
     CorrosionModel = load_model("models/CorrosionRateModel.keras", compile=False)
-    # Ensure the correct filename is used (adjust if necessary)
     SaturationModel = load_model("models/SaturationRateModel.keras", compile=False)
 
 # -------------------------------------------------------------------
@@ -47,7 +46,7 @@ with st.spinner("Fitting scaler on input data..."):
 def ReverseScalingandLog10(optimisationResult):
     result_reshaped = optimisationResult.reshape(1, -1)
     real_values = scaler.inverse_transform(result_reshaped)
-    # Reverse the log transformation for columns 2,3,4 (PCO2, v, d)
+    # For columns 2,3,4 (PCO2, v, d), reverse the log10 transform.
     real_values[:, 2:] = 10 ** real_values[:, 2:]
     return real_values
 
@@ -58,6 +57,7 @@ def ReverseScalingandLog10(optimisationResult):
 # -------------------------------------------------------------------
 class MinimizeCR(ElementwiseProblem):
     def __init__(self, d, PCO2):
+        # Transform and scale the fixed values.
         d_log = np.log10(d)
         d_scaled = scaler.transform(np.array([0, 0, 0, 0, d_log]).reshape(1, -1))[0][4]
 
@@ -67,27 +67,20 @@ class MinimizeCR(ElementwiseProblem):
         self.fixed_d = d_scaled
         self.fixed_PCO2 = PCO2_scaled
 
-        # Bounds for pH (index 0), T (index 1), and v (index 3)
-        xl = np.array([
-            XDataScaled[:, 0].min(),
-            XDataScaled[:, 1].min(),
-            XDataScaled[:, 3].min()
-        ])
-        xu = np.array([
-            XDataScaled[:, 0].max(),
-            XDataScaled[:, 1].max(),
-            XDataScaled[:, 3].max()
-        ])
+        # Define bounds for design variables: pH (index 0), T (index 1), and v (index 3)
+        xl = np.array([XDataScaled[:, 0].min(), XDataScaled[:, 1].min(), XDataScaled[:, 3].min()])
+        xu = np.array([XDataScaled[:, 0].max(), XDataScaled[:, 1].max(), XDataScaled[:, 3].max()])
 
         super().__init__(n_var=3, n_obj=1, n_ieq_constr=1, xl=xl, xu=xu)
 
     def _evaluate(self, X, out, *args, **kwargs):
+        # Reconstruct full design vector: [pH, T, fixed_PCO2, v, fixed_d]
         full_design = np.zeros(5)
-        full_design[0] = X[0]  # pH
-        full_design[1] = X[1]  # T
+        full_design[0] = X[0]        # pH
+        full_design[1] = X[1]        # T
         full_design[2] = self.fixed_PCO2  # fixed, scaled PCO2
-        full_design[3] = X[2]  # v
-        full_design[4] = self.fixed_d  # fixed, scaled d
+        full_design[3] = X[2]        # v
+        full_design[4] = self.fixed_d      # fixed, scaled d
         full_design = full_design.reshape(1, -1)
 
         corrosionResult = CorrosionModel.predict(full_design, verbose=False).flatten()
@@ -126,19 +119,27 @@ def minimise_cr(d, PCO2):
         if optimized_vars.size != 3:
             raise ValueError(f"Expected 3 elements, got {optimized_vars.size}")
         full_design_scaled = np.zeros(5)
-        full_design_scaled[0] = optimized_vars[0]  # pH
-        full_design_scaled[1] = optimized_vars[1]  # T
-        full_design_scaled[2] = PCO2_scaled        # fixed, scaled PCO2
-        full_design_scaled[3] = optimized_vars[2]  # v
-        full_design_scaled[4] = d_scaled           # fixed, scaled d
+        full_design_scaled[0] = optimized_vars[0]   # pH
+        full_design_scaled[1] = optimized_vars[1]   # T
+        full_design_scaled[2] = PCO2_scaled         # fixed, scaled PCO2
+        full_design_scaled[3] = optimized_vars[2]   # v
+        full_design_scaled[4] = d_scaled            # fixed, scaled d
+
+        # Invert the scaling; then reverse the log10 transform for columns 2-4.
         best_params = ReverseScalingandLog10(full_design_scaled)
 
     with st.spinner("Computing final model predictions..."):
-        scaled_final = scaler.transform(best_params)
+        # IMPORTANT:
+        # best_params is in original units (for columns 2,3,4 these are NOT in log-space).
+        # The scaler was fitted on log-transformed inputs.
+        # So, create a version of best_params with columns 2-4 converted back to log10.
+        best_params_log = best_params.copy()
+        best_params_log[:, 2:] = np.log10(best_params_log[:, 2:])
+        scaled_final = scaler.transform(best_params_log)
         final_cr = CorrosionModel.predict(scaled_final, verbose=False).flatten()[0]
         final_sr = SaturationModel.predict(scaled_final, verbose=False).flatten()[0]
 
-    # Final vector: [pH, T, CO₂, v, d, CR, SR]
+    # Create final vector: [pH, T, CO₂, v, d, CR, SR]
     final_vector = np.concatenate((best_params.flatten(), [final_cr, final_sr]))
 
     # Column headers with units (adjust units as needed)
