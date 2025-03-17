@@ -30,4 +30,6 @@ The first flow system is for a heatsink, where the available dataset consists of
 The second flow system involves the multi-physics software Leeds COMSOL, used to predict corrosion rate and saturation ratio in geothermal steel pipes for five inputs.\n
 The aim of this UI is to incorporate the customisable areas of this project to allow the user to gain an ehnaced understanding of the methods at hand. \n
 **Please select a page from the sidebar.**
+\n \n \n
+*note: in the event of no response from pressing any buttons, press twice to move to the desired page, or refresh the app to go back to home"
     """)
