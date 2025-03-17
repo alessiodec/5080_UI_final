@@ -17,9 +17,7 @@ def optimisation_menu():
     This page allows you to minimise the corrosion rate by specifying the pipe diameter and CO₂ partial pressure. \n
     A differential evolution algorithm is used to optimise the remaining parameters while keeping some values fixed. \n
     - [more to be added] \n
-    \n
-    \n
-    *Please wait up to one minute for each optimisation algorithm to be completed.*
+    *Please wait up to one minute for each optimisation algorithm to be completed.* \n
     """)
     
     # Button to navigate to the minimisation page.
