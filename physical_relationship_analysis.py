@@ -47,7 +47,7 @@ def heatsink_page():
     - User input for population size, retention size, and the number of iterations
     - Real-time plotting of fitness and complexity throughout iterations
     - Pareto front visualisation (planned)
-    - Display of the best-fit equation found (planned)
+    - Display of the best-fit equation found (planned) \n
     *note: since this is hosted online, it may take a while to run expensive computations. It is recommended to use a population size of no greater then 300 to analyse the process with faster results.*
     """)
 
