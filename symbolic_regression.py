@@ -2,21 +2,20 @@ import streamlit as st
 
 def run():
     # Display the prompt text at the top of the page.
-    st.write("please select a dataset:")
+    st.write("Please Select a Dataset:")
 
-    # Display a button labeled "corrosion".
-    if st.button("corrosion"):
-        # Placeholder for when the corrosion dataset is selected.
-        st.write("Corrosion dataset selected. [Further implementation goes here]")
+    # Create two columns to place the dataset buttons beside each other.
+    col1, col2 = st.columns(2)
     
-    # Display a button labeled "heatsink".
-    if st.button("heatsink"):
-        # Placeholder for when the heatsink dataset is selected.
-        st.write("Heatsink dataset selected. [Further implementation goes here]")
+    with col1:
+        if st.button("Corrosion"):
+            st.write("Corrosion dataset selected. [Further implementation goes here]")
     
-    # Display a button labeled "go to home" that navigates back to the main page.
-    if st.button("go to home"):
-        # Set a query parameter 'page' to "Home" and re-run the app.
-        # This effectively returns the user to the main page in your multi-page app.
+    with col2:
+        if st.button("Heatsink"):
+            st.write("Heatsink dataset selected. [Further implementation goes here]")
+    
+    # Place the "Go To Home" button beneath the columns.
+    if st.button("Go To Home"):
         st.experimental_set_query_params(page="Home")
         st.experimental_rerun()
