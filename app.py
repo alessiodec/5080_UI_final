@@ -5,7 +5,7 @@ st.set_page_config(layout="wide")
 
 # SIDEBAR NAVIGATION
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Home", "Data Analysis // Surrogate Modelling", "Optimisation", "Symbollic Regression", "Symbollic Regression 2"])
+page = st.sidebar.radio("Go to", ["Home", "Data Analysis // Surrogate Modelling", "Optimisation", "Symbolic Regression", "Symbolic Regression 2"])
 
 # ROUTE TO PAGE
 if page == "Data Analysis // Surrogate Modelling":
@@ -17,9 +17,9 @@ elif page == "Optimisation":
 elif page == "Symbollic Regression":
     import physical_relationship_analysis
     physical_relationship_analysis.run()
-elif page == "Symbollic Regression 2":
+elif page == "Symbolic Regression 2":
     import symbollic_regression
-    symbollic_regression.run()
+    symbolic_regression.run()
 else:
     # HOME PAGE TEXT
     st.title("Machine Learning-Enabled Optimisation of Industrial Flow Systems - UI Tool")
