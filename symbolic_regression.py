@@ -1,4 +1,6 @@
 import streamlit as st
+import matplotlib.pyplot as plt
+from functions.symbolic_regression_functions import run_symbolic_regression
 
 def run():
     # Page title and explanation placeholder.
@@ -44,10 +46,22 @@ def run():
         population_retention_size = st.number_input("Population Retention Size", value=50, step=1)
         number_of_iterations = st.number_input("Number of Iterations", value=10, step=1)
 
+        # Display Run Regression button once all inputs are provided.
+        if st.button("Run Regression"):
+            population, pareto_df, DV = run_symbolic_regression(
+                st.session_state['dataset'],
+                st.session_state['output'],
+                population_size,
+                population_retention_size,
+                number_of_iterations
+            )
+            st.write("Dependent Variable Code:", DV)
+            st.dataframe(pareto_df)
+            st.pyplot(plt.gcf())
+
     # Always show the "Go To Home" button at the bottom.
     if st.button("Go To Home"):
         st.session_state.pop('dataset', None)
         st.session_state.pop('output', None)
         st.experimental_set_query_params(page="Home")
         st.experimental_rerun()
-
