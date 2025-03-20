@@ -14,11 +14,11 @@ if page == "Data Analysis // Surrogate Modelling":
 elif page == "Optimisation":
     import optimisation
     optimisation.run()
-elif page == "Symbollic Regression":
+elif page == "Symbolic Regression":
     import physical_relationship_analysis
     physical_relationship_analysis.run()
 elif page == "Symbolic Regression 2":
-    import symbollic_regression
+    import symbolic_regression
     symbolic_regression.run()
 else:
     # HOME PAGE TEXT
