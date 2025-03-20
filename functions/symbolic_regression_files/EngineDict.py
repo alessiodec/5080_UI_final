@@ -5,7 +5,7 @@ import random
 import numpy as np
 import math
 import operator
-import Simplification as simp
+from . import Simplification as simp
 import pandas as pd
 
 from deap import gp
