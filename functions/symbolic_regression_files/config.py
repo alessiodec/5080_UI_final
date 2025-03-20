@@ -1,0 +1,42 @@
+# functions/symbolic_regression_files/config.py
+
+# --- THRESHOLDS ----
+FIT_THRESHOLD = 100
+COMPLEXITY_MAX_THRESHOLD = 400
+COMPLEXITY_MIN_THRESHOLD = 1
+
+# --- GLOBAL VARIABLES
+POPULATION_SIZE = 1500
+POPULATION_RETENTION_SIZE = 300
+TORNEMENT_SIZE = 3
+
+# --- SETTINGS --- 
+DATASET = 'BENCHMARK'  # Options: 'CORROSION', 'HEATSINK', or 'BENCHMARK'
+USE_RMSE = False       # If False, use 1-R^2 as fitness metric
+USE_SIMPLIFICATION = True
+
+DISPLAY_ERROR_MESSAGES = False
+DISPLAY_SIMPLIFY_ERROR_MESSAGES = False
+
+TORN_SELECTION_METHOD = 'pareto'
+MATE_MUTATE_SELECTION_METHOD = 'all'
+
+VERBOSE = 1
+DISPLAY_INTERVAL = 200
+
+# --- Reading intervals and thresholds ---
+PARETO_INDEX_INTERVAL = 5
+SIMPLIFICATION_INDEX_INTERVAL = 10
+EARLY_STOPPING_THRESHOLD = 10
+FITNESS_REDUCTION_THRESHOLD = 4
+FITNESS_REDUCTION_FACTOR = 0.9
+
+# Global toolbox and primitive set (to be set by EngineDict)
+TOOLBOX = None
+PSET = None
+
+# Data variables (to be loaded/set later)
+X = None
+y = None
+std_y = None
+mean_y = None
