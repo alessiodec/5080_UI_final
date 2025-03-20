@@ -1,6 +1,6 @@
 # functions/symbolic_regression_files/EngineDict.py
 
-import config
+from . import config
 import random
 import numpy as np
 import math
