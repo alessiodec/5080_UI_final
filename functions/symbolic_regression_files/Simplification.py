@@ -1,6 +1,6 @@
 # functions/symbolic_regression_files/Simplification.py
 
-import config
+from . import config
 import EngineDict as Engine
 import sympy as sp
 from sympy import Add, Mul, Pow, Number, Symbol
