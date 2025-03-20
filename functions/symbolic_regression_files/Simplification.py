@@ -1,7 +1,7 @@
 # functions/symbolic_regression_files/Simplification.py
 
 from . import config
-import EngineDict as Engine
+from . import EngineDict as Engine
 import sympy as sp
 from sympy import Add, Mul, Pow, Number, Symbol
 from sympy import log as sympy_log, exp as sympy_exp
