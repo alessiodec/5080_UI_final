@@ -5,7 +5,7 @@ st.set_page_config(layout="wide")
 
 # SIDEBAR NAVIGATION
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Home", "Data Analysis // Surrogate Modelling", "Optimisation", "Symbollic Regression 2"])
+page = st.sidebar.radio("Go to", ["Home", "Data Analysis // Surrogate Modelling", "Optimisation", "Symbollic Regression", , "Symbollic Regression 2"])
 
 # ROUTE TO PAGE
 if page == "Data Analysis // Surrogate Modelling":
