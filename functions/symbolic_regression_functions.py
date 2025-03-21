@@ -42,7 +42,9 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
 
     # --- Data Loading and Preprocessing ---
     with st.spinner("Loading and preprocessing data..."):
+        st.write("Debug: Starting data loading and preprocessing...")
         if dataset_choice == 'CORROSION':
+            st.write("Debug: Loading CORROSION dataset...")
             csv_url = "https://drive.google.com/uc?export=download&id=10GtBpEkWIp4J-miPzQrLIH6AWrMrLH-o"
             response = requests.get(csv_url)
             df = pd.read_csv(io.StringIO(response.text))
@@ -85,7 +87,9 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
             config.X = transformed_X
             config.y = standardised_y
 
+            st.write("Debug: CORROSION dataset loaded and preprocessed.")
         elif dataset_choice == 'HEATSINK':
+            st.write("Debug: Loading HEATSINK dataset...")
             heatsink_file = os.path.join("functions", "symbolic_regression_files", "data", "Latin_Hypercube_Heatsink_1000_samples.txt")
             with open(heatsink_file, "r") as f:
                 text = f.read()
@@ -103,6 +107,8 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
 
             config.X = X
             config.y = standardised_y
+
+            st.write("Debug: HEATSINK dataset loaded and preprocessed.")
         else:
             st.error("Invalid dataset choice provided.")
             return
@@ -126,6 +132,7 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
 
     # --- Initialize Population ---
     with st.spinner("Generating initial population..."):
+        st.write("Debug: Initializing population...")
         t0 = time.time()
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", RuntimeWarning)
@@ -154,6 +161,7 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
 
     start_time = time.time()
     with st.spinner("Evolving population..."):
+        st.write("Debug: Evolving population...")
         for j, i in enumerate(range(iterations[-1], iterations[-1] + number_of_iterations)):
             status_placeholder.text(f"Evolution iteration {j+1} of {number_of_iterations}")
             new_population = Engine.generate_new_population(population=new_population.copy())
@@ -191,25 +199,4 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
             ax.cla()
             ax.plot(iterations, avg_fitness_arr, label="Average Population Fitness")
             ax.plot(iterations, avg_complexity_arr, label="Complexity")
-            ax.plot(iterations, best_fitness_arr, label="Lowest Population Fitness")
-            ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-            ax.set_ylabel("Fitness - 1-$R^2$")
-            ax.set_xlabel("Iteration")
-            ax.set_yscale("log")
-            ax.set_title(f"Population Metrics {dataset_choice} // {output_var}")
-
-            plot_placeholder.pyplot(fig)
-            progress = int(((j + 1) / number_of_iterations) * 100)
-            progress_bar.progress(progress)
-            time.sleep(0.1)
-    st.success("Evolution complete.")
-
-    pareto_front = Engine.return_pareto_front(new_population)
-    pareto_front = list(pareto_front)
-    pareto_front.sort(key=lambda x: x['fitness'], reverse=False)
-    best_indiv = pareto_front[0]
-
-    best_sympy_expr = simp.convert_expression_to_sympy(best_indiv['individual'])
-    equation = sp.Eq(sp.Symbol(output_var), best_sympy_expr)
-    st.latex(sp.latex(equation))
-    status_placeholder.text("Final equation computed.")
+            ax.plot(iterations, best_fitness_arr, label="Lowest Population
