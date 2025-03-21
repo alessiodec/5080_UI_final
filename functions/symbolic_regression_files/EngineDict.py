@@ -1,24 +1,37 @@
 # functions/symbolic_regression_files/EngineDict.py
 
-from . import config
+"""
+Functions for implementing the SR - 14.2.25 - HEATSINK
+Currently only valid for the Thermal Resistance of the Heatsink dataset - needs to be made dynamic.
+For now these are just population functions.
+"""
+
+import config
 import random
 import numpy as np
+import warnings
 import math
 import operator
-from . import Simplification as simp
+import Simplification as simp
 import pandas as pd
 
 from deap import gp
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import root_mean_squared_error, r2_score
 from deap import base, creator, gp, tools, algorithms
 from functools import partial
 from datetime import datetime
 
 import sympy as sp
+from sympy import Add, Mul, Pow, Number, Symbol
 from sympy import log as sympy_log, exp as sympy_exp
 
+import streamlit as st  # For Streamlit display
+
+# Custom exception for our operations
 class CustomOperationException(Exception):
     pass
+
+# ---------- Protected Operations ----------
 
 def protectedDiv(left, right):
     try:
@@ -38,10 +51,12 @@ def protectedExp(value):
     except Exception:
         raise CustomOperationException('protectedExp Error')
 
+# Generate random constants between -1 and 1 (rounded to 4dp)
 def random_constant():
     return round(random.uniform(-1, 1), 4)
 
-# Set the number of inputs based on the dataset.
+# ---------- Define the set of operations --------------
+
 if config.DATASET == 'HEATSINK':
     num_inputs = 2
 elif config.DATASET == 'CORROSION':
@@ -49,7 +64,7 @@ elif config.DATASET == 'CORROSION':
 elif config.DATASET == 'BENCHMARK':
     num_inputs = 3
 else:
-    raise CustomOperationException('config.DATASET not set correctly; should be "BENCHMARK", "HEATSINK", or "CORROSION"')
+    raise CustomOperationException('config.DATASET has not been set correctly - should be either "BENCHMARK", "HEATSINK", or "CORROSION"')
 
 pset = gp.PrimitiveSet("MAIN", arity=num_inputs)
 pset.addPrimitive(operator.add, 2)     
@@ -75,8 +90,19 @@ elif config.DATASET == 'BENCHMARK':
     pset.renameArguments(ARG1='X2')
     pset.renameArguments(ARG2='X3')
 
-creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
+# ---------- Define Types (with safe re-creation for Streamlit) ----------
+
+try:
+    creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
+except Exception:
+    pass
+
+try:
+    creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
+except Exception:
+    pass
+
+# ---------- Create Toolbox and Register Functions ----------
 
 toolbox = base.Toolbox()
 toolbox.register("expr", gp.genHalfAndHalf, pset=pset, min_=2, max_=4)
@@ -89,28 +115,36 @@ toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr, pset=pset)
 config.TOOLBOX = toolbox
 config.PSET = pset
 
+# ---------- Evaluation Functions ----------
+
 def evaluate_individual(individual):
+    """
+    Compiles an individual into a callable function, evaluates its performance on the dataset,
+    and returns a tuple of (fitness, complexity).
+    """
     func = gp.compile(expr=individual, pset=pset)
     complexity = len(individual)
+    
     try:
         if config.DATASET == 'HEATSINK':
-            y_pred = [func(x[0], x[1]) for x in config.X] 
+            y_pred = [func(x[0], x[1]) for x in config.X]
         elif config.DATASET == 'CORROSION': 
-            y_pred = [func(x[0], x[1], x[2], x[3], x[4]) for x in config.X] 
+            y_pred = [func(x[0], x[1], x[2], x[3], x[4]) for x in config.X]
         elif config.DATASET == 'BENCHMARK':
-            y_pred = [func(x[0], x[1], x[2]) for x in config.X] 
+            y_pred = [func(x[0], x[1], x[2]) for x in config.X]
         else: 
-            raise CustomOperationException('config.DATASET not set correctly')
+            raise CustomOperationException('config.DATASET is not set correctly')
         
         y_pred = np.array(y_pred).reshape(-1,)
     
         if config.USE_RMSE:
-            fitness = np.sqrt(mean_squared_error(config.y, y_pred))
+            fitness = root_mean_squared_error(config.y, y_pred)
         else:
             fitness = 1 - r2_score(config.y, y_pred)
+
     except Exception as e:
         if config.DISPLAY_ERROR_MESSAGES:
-            print(e)
+            st.write(e)
         fitness = config.FIT_THRESHOLD + 1
 
     return fitness, complexity
@@ -135,7 +169,7 @@ def display_progress(population, last_printed_index):
         
     if config.VERBOSE and (len(population) % config.DISPLAY_INTERVAL == 0) and (len(population) > 0):
         avg_fit, avg_comp, best_fit = evaluate_population(population)
-        print(f'Len:{len(population)}, Avg Fit:{avg_fit:.4f}, Avg Comp:{avg_comp:.4f}, Best Fit:{best_fit:.6f}')
+        st.write(f'Len:{len(population)}, Avg Fit:{avg_fit:.4f}, Avg Comp:{avg_comp:.4f}, Best Fit:{best_fit:.6f}')
         return len(population)
 
 def convert_individual_to_key(individual):
@@ -144,22 +178,25 @@ def convert_individual_to_key(individual):
         try:
             float(node.name)
             format_str += '_COEFF_'
-        except:
+        except Exception:
             if node.name == 'randConst':
                 format_str += '_COEFF_'
             else:
                 format_str += node.name
     return format_str  
 
+# ---------- Population Simplification ----------
+
 def simplify_population(population):
     if config.VERBOSE:
-        print('\n-------------- SIMPLIFICATION --------------')
+        st.write('\n-------------- SIMPLIFICATION --------------')
         
     simplified_population = {}   
     index_tracker = 0
     
     for individual in population.values():
         index_tracker = display_progress(population=simplified_population, last_printed_index=index_tracker)
+        
         if individual['is_simplified']:
             key = convert_individual_to_key(individual['individual'])
             if key not in simplified_population or individual['fitness'] < simplified_population[key]['fitness']:
@@ -179,7 +216,7 @@ def simplify_population(population):
         elif new_complexity > individual['complexity']:
             key = convert_individual_to_key(individual['individual'])
             if config.DISPLAY_ERROR_MESSAGES:
-                print(f"failure -> individual: {individual['individual']}")
+                st.write(f"failure -> individual: {individual['individual']}")
             if key not in simplified_population or fitness < simplified_population[key]['fitness']:
                 simplified_population[key] = individual
                 simplified_population[key]['is_simplified'] = True
@@ -192,7 +229,10 @@ def simplify_population(population):
                     'individual': simplified_indiv,
                     'is_simplified': True,
                 }
+                    
     return simplified_population
+
+# ---------- Population Initialization ----------
 
 def initialize_population():
     init_population = {}
@@ -201,10 +241,12 @@ def initialize_population():
     while len(init_population) < config.POPULATION_SIZE:
         individual = toolbox.individual()
         fitness, complexity = evaluate_individual(individual=individual)
+        
         if complexity > config.COMPLEXITY_MAX_THRESHOLD or complexity < config.COMPLEXITY_MIN_THRESHOLD or fitness > config.FIT_THRESHOLD:
             continue
             
         key = convert_individual_to_key(individual)
+            
         if key not in init_population or fitness < init_population[key]['fitness']:
             init_population[key] = {
                 'complexity': complexity,
@@ -219,6 +261,8 @@ def initialize_population():
     
     return init_population
 
+# ---------- Pareto and Dominance Functions ----------
+
 def return_pareto_front(population):
     results = []
     for individual in population.values():
@@ -230,6 +274,7 @@ def return_pareto_front(population):
         if is_pareto[i]:
             is_pareto[is_pareto] = np.any(results[is_pareto] < c, axis=1)
             is_pareto[i] = True
+    
     return np.array(list(population.values()))[is_pareto]
 
 def dominates(ind1, ind2):
@@ -239,15 +284,19 @@ def dominates(ind1, ind2):
 
 def generate_new_generation_NSGA_2(n, population, tournament_selection=False):
     dominated_counts = [0] * len(population)
+
     if isinstance(population, dict):
         population = list(population.values())
+
     for i, ind1 in enumerate(population):
         for j, ind2 in enumerate(population[i:]):
             if dominates(ind1, ind2):
-                dominated_counts[j+i] += 1
+                dominated_counts[j + i] += 1
             elif dominates(ind2, ind1):
                 dominated_counts[i] += 1
+                
     pareto_fronts = [[] for _ in range(max(dominated_counts) + 1)]
+    
     for i, ind in enumerate(population):
         pareto_fronts[dominated_counts[i]].append(ind)
     
@@ -260,33 +309,39 @@ def generate_new_generation_NSGA_2(n, population, tournament_selection=False):
             pareto_index += 1
         elif tournament_selection:
             pareto_fronts[pareto_index].sort(key=lambda x: x['fitness'], reverse=False)
-            for i in range(n - len(next_generation)): 
-                next_generation.append(pareto_fronts[pareto_index][i])     
+            for i in range(n - len(next_generation)):
+                next_generation.append(pareto_fronts[pareto_index][i])
         else:
             selected_ind = random.choice(pareto_fronts[pareto_index])
-            pareto_fronts[pareto_index].remove(selected_ind)                           
+            pareto_fronts[pareto_index].remove(selected_ind)
             next_generation.append(selected_ind)
+
     return next_generation
+
+# ---------- Tournament Selection, Mating and Mutation ----------
 
 def tournament_selection(parent_generation: list, n_selected=2):
     selected = []
     tournament = random.sample(parent_generation, config.TORNEMENT_SIZE)
+    
     if config.TORN_SELECTION_METHOD == 'pareto':
         selected = generate_new_generation_NSGA_2(n_selected, tournament, tournament_selection=True)
     else:
         tournament.sort(key=lambda x: x['fitness'], reverse=False)
         selected = tournament[:2]
+
     return selected
 
 def mate_and_mutate(parent1, parent2, cxpb=0.95, mutpb=0.5):
     offspring1 = toolbox.clone(parent1['individual'])
     offspring2 = toolbox.clone(parent2['individual'])
+    
     try:
         if random.random() < cxpb:
             toolbox.mate(offspring1, offspring2)
     except Exception as e: 
         if config.DISPLAY_ERROR_MESSAGES:
-            print(f"Failed to MATE {e}")
+            st.write(f"Failed to MATE: {e}")
     
     try:
         if random.random() < mutpb:
@@ -295,17 +350,20 @@ def mate_and_mutate(parent1, parent2, cxpb=0.95, mutpb=0.5):
             toolbox.mutate(offspring2)
     except Exception as e: 
         if config.DISPLAY_ERROR_MESSAGES:
-            print(f"Failed to MUTATE {e}")
+            st.write(f"Failed to MUTATE: {e}")
     
     custom_parent_arr = [parent1, parent2]
+    
     for individual in [offspring1, offspring2]:
         fitness, complexity = evaluate_individual(individual)
         offspring = {
             'complexity': complexity,
             'fitness': fitness,
             'individual': individual,
-            'is_simplified': False}
-        custom_parent_arr.extend([offspring])
+            'is_simplified': False
+        }
+        custom_parent_arr.append(offspring)
+    
     return custom_parent_arr
 
 def generate_new_population(population: dict):
@@ -315,16 +373,17 @@ def generate_new_population(population: dict):
     
     while len(new_population) < config.POPULATION_SIZE:
         parent1, parent2 = tournament_selection(new_gen_parents)
-        mate_mutation_results = mate_and_mutate(parent1, parent2)    
+        mate_mutation_results = mate_and_mutate(parent1, parent2)
+    
         if config.MATE_MUTATE_SELECTION_METHOD == 'pareto':
-            selected_mate_mutation_results = return_pareto_front(mate_mutation_results)
+            selected_mate_mutation_results = return_pareto_front({i: m for i, m in enumerate(mate_mutation_results)})
         elif config.MATE_MUTATE_SELECTION_METHOD == 'fitness':
             mate_mutation_results.sort(key=lambda x: x['fitness'], reverse=False)
             selected_mate_mutation_results = mate_mutation_results[:2]
         else:
             selected_mate_mutation_results = mate_mutation_results
     
-        for individual in selected_mate_mutation_results:        
+        for individual in selected_mate_mutation_results:
             if individual['complexity'] > config.COMPLEXITY_MAX_THRESHOLD or individual['complexity'] < config.COMPLEXITY_MIN_THRESHOLD or individual['fitness'] > config.FIT_THRESHOLD:
                 continue
             
@@ -332,34 +391,41 @@ def generate_new_population(population: dict):
             if key not in new_population or individual['fitness'] < new_population[key]['fitness']:
                 new_population[key] = individual
                 index_tracker = display_progress(population=new_population, last_printed_index=index_tracker)
+            
     return new_population
+
+# ---------- File I/O and Post-processing ----------
 
 def write_population_to_file(population: list, DV: str, STD: str):
     now = datetime.now()
     timestamp = now.strftime("%H-%M-%S_%d_%m")
+    
     Possible_DVs = ['CR', 'PD', 'TR', 'SR']
     if DV not in Possible_DVs:
-        print(f'ERROR: {DV} not in {Possible_DVs} - please change')
+        st.write(f'ERROR: {DV} not in {Possible_DVs} - please change')
         return
+
     Possible_STDs = ['STD', 'NOTSTD']
     if STD not in Possible_STDs:
-        print(f'ERROR: {STD} not in {Possible_STDs} - please change')
+        st.write(f'ERROR: {STD} not in {Possible_STDs} - please change')
         return
+    
     filename = f"Prev_Generations_Log/{DV}/{STD}_{timestamp}.txt"
+    
     with open(filename, "a") as f:
         for i, individual in enumerate(population):
             f.write(str(individual['individual']))
             f.write('\n')
 
 def read_population_from_file(filename: str):
-    file = open(filename, "r")
-    content = file.read()
-    file.close()
+    with open(filename, "r") as file:
+        content = file.read()
     
     population = {}
     for expression in content.split('\n'):
         if expression == '':
             continue
+
         expression = expression.replace('neg(', 'mul(-1,')
         individual = gp.PrimitiveTree.from_string(expression, pset)
         fitness, complexity = evaluate_individual(individual)
@@ -371,13 +437,14 @@ def read_population_from_file(filename: str):
                 'individual': individual,
                 'is_simplified': False,
             }
+        
     return population
 
 def unstandardise_and_simplify_population(population: dict):
     injected_population = {}
     
     for individual in population.values():
-        new_expression_str = f"add(mul({individual['individual']}, {config.std_y}), {config.mean_y})" 
+        new_expression_str = f"add(mul({individual['individual']}, {config.std_y}), {config.mean_y})"
         individual = gp.PrimitiveTree.from_string(new_expression_str, pset)
         fitness, complexity = evaluate_individual(individual)
         key = convert_individual_to_key(individual)
@@ -388,17 +455,20 @@ def unstandardise_and_simplify_population(population: dict):
                 'individual': individual,
                 'is_simplified': False,
             }
+
     if config.USE_SIMPLIFICATION:
         injected_population = simplify_population(injected_population)
+    
     return injected_population
 
 def extend_population_with_saved_expressions(filenames: list, population: dict):
     for filename in filenames:
-        read_population_data = read_population_from_file(filename)
-        for individual in read_population_data.values():
+        read_population = read_population_from_file(filename)
+        for individual in read_population.values():
             key = convert_individual_to_key(individual['individual'])
             if key not in population or individual['fitness'] < population[key]['fitness']:
                 population[key] = individual
+                
     return population
 
 def get_pareto_scores(population):
@@ -424,6 +494,7 @@ def get_pareto_scores(population):
                     cur_score = -(curFit - lastFit) / (curComplexity - lastComplexity)
             else:
                 cur_score = np.inf
+    
         scores.append(cur_score)
         lastFit = curFit
         lastComplexity = curComplexity
@@ -431,7 +502,8 @@ def get_pareto_scores(population):
     scores_df = pd.DataFrame(pareto_front)
     scores_df['score'] = scores
     scores_df['individual'] = scores_df['individual'].astype(str)
+    
     return scores_df
 
 if __name__ == "__main__":
-    print('Should not be run as main - EngineDict.py just contains utility functions')
+    st.write('Should not be run as main - EngineDict.py just contains utility functions')
