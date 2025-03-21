@@ -51,7 +51,7 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
             df = df.astype(float)
 
             # Create logarithmic columns
-            df["LogP"] = np.log10(df["PpCO2"])
+            df["LogP"] = np.log10(df["PCO2"])
             df["LogV"] = np.log10(df["v"])
             df["LogD"] = np.log10(df["d"])
 
