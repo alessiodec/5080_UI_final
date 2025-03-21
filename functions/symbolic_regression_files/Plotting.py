@@ -3,8 +3,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import streamlit as st
-import config
-import EngineDict as Engine
+from . import config
+from . import EngineDict as Engine
 
 def plot_pareto(population, yscale='log', ymax=None, ymin=None):
     """
