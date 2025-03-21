@@ -1,20 +1,20 @@
 import streamlit as st
 import matplotlib.pyplot as plt
-# from functions.symbolic_regression_functions import run_symbolic_regression
+from functions.symbolic_regression_files.run_experiment import run_evolution_experiment
 
 def run():
-    # Page title and explanation placeholder.
+    # Page title and explanation.
     st.title("Symbolic Regression")
     st.write("This page allows you to configure and run a symbolic regression algorithm. [Explanation placeholder for the page]")
 
-    # If a dataset is selected, always show the "Return to Dataset Selection" button at the top.
+    # Button to return to dataset selection if one is already selected.
     if 'dataset' in st.session_state:
         if st.button("Return to Dataset Selection"):
             st.session_state.pop('dataset', None)
             st.session_state.pop('output', None)
             st.experimental_rerun()
 
-    # Dataset selection: if no dataset is selected, show dataset buttons.
+    # If no dataset is selected, display dataset selection buttons.
     if 'dataset' not in st.session_state:
         st.write("Please Select a Dataset:")
         col1, col2 = st.columns(2)
@@ -22,7 +22,7 @@ def run():
             st.session_state['dataset'] = 'corrosion'
         if col2.button("Heatsink"):
             st.session_state['dataset'] = 'heatsink'
-    # If a dataset has been selected, show output variable selection.
+    # If a dataset is selected, display output variable selection.
     else:
         st.write(f"Dataset selected: {st.session_state['dataset'].capitalize()}")
         st.write("Please Select an Output Variable of Choice:")
@@ -39,18 +39,44 @@ def run():
             if col2_out.button("Thermal Resistance"):
                 st.session_state['output'] = 'thermal_resistance'
 
-    # Once both dataset and output variable are selected, show regression input fields.
+    # Once both dataset and output are selected, show regression input fields.
     if 'dataset' in st.session_state and 'output' in st.session_state:
         st.write("Please Select the Regression Inputs:")
         population_size = st.number_input("Population Size", value=100, step=1)
         population_retention_size = st.number_input("Population Retention Size", value=50, step=1)
         number_of_iterations = st.number_input("Number of Iterations", value=10, step=1)
 
-        # Display Run Regression button once all inputs are provided.
+        # When Run Regression is pressed, map selections and call the evolution function.
         if st.button("Run Regression"):
-            st.write("Run Regression pressed. [No functionality implemented yet]")
+            # Map the selected dataset to the format expected by run_evolution_experiment.
+            dataset_selected = st.session_state['dataset']
+            output_selected = st.session_state['output']
+            if dataset_selected.lower() == 'corrosion':
+                dataset_choice = "CORROSION"
+                # Map output variable: "corrosion_rate" -> "CR", "saturation_ratio" -> "SR"
+                if output_selected.lower() == 'corrosion_rate':
+                    output_var = "CR"
+                elif output_selected.lower() == 'saturation_ratio':
+                    output_var = "SR"
+                else:
+                    output_var = output_selected  # fallback
+            elif dataset_selected.lower() == 'heatsink':
+                dataset_choice = "HEATSINK"
+                # Map output variable: "pressure_drop" -> "Pressure_Drop", "thermal_resistance" -> "Thermal_Resistance"
+                if output_selected.lower() == 'pressure_drop':
+                    output_var = "Pressure_Drop"
+                elif output_selected.lower() == 'thermal_resistance':
+                    output_var = "Thermal_Resistance"
+                else:
+                    output_var = output_selected
+            else:
+                st.error("Invalid dataset selection.")
+                return
 
-    # Always show the "Go To Home" button at the bottom.
+            # Call the evolution function with the user-provided inputs.
+            run_evolution_experiment(dataset_choice, output_var, population_size, population_retention_size, number_of_iterations)
+
+    # Always show a "Go To Home" button.
     if st.button("Go To Home"):
         st.session_state.pop('dataset', None)
         st.session_state.pop('output', None)
