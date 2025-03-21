@@ -375,7 +375,7 @@ def generate_new_population(population: dict):
     new_population = {}
     index_tracker = 0
     
-    max_attempts = config.POPULATION_SIZE * 10  # allow up to 10× as many attempts as the desired size
+    max_attempts = config.POPULATION_SIZE * 10  # Allow up to 10× as many attempts as the desired size
     attempts = 0
     
     while len(new_population) < config.POPULATION_SIZE and attempts < max_attempts:
@@ -392,7 +392,9 @@ def generate_new_population(population: dict):
             selected_mate_mutation_results = mate_mutation_results
     
         for individual in selected_mate_mutation_results:
-            if individual['complexity'] > config.COMPLEXITY_MAX_THRESHOLD or individual['complexity'] < config.COMPLEXITY_MIN_THRESHOLD or individual['fitness'] > config.FIT_THRESHOLD:
+            if (individual['complexity'] > config.COMPLEXITY_MAX_THRESHOLD or
+                individual['complexity'] < config.COMPLEXITY_MIN_THRESHOLD or
+                individual['fitness'] > config.FIT_THRESHOLD):
                 continue
             
             key = convert_individual_to_key(individual['individual'])
@@ -401,9 +403,14 @@ def generate_new_population(population: dict):
                 index_tracker = display_progress(population=new_population, last_printed_index=index_tracker)
     
     if attempts >= max_attempts:
-        st.write("WARNING: Maximum attempts reached in generate_new_population; returning current population.")
+        st.write("WARNING: Maximum attempts reached in generate_new_population; returning previous population.")
+    
+    # If no new individuals were generated, return the original population instead of an empty dict.
+    if len(new_population) == 0:
+        return population
     
     return new_population
+
 
 
 
