@@ -129,7 +129,7 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
         t0 = time.time()
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", RuntimeWarning)
-            init_population = Engine.initialize_population(verbose=1)
+            init_population = Engine.initialize_population()
             Engine.evaluate_population(init_population)
         init_time = time.time() - t0
         st.write(f"Initial population generated in {init_time:.2f} seconds.")
