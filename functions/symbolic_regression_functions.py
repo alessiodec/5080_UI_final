@@ -43,7 +43,6 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
     # --- Data Loading and Preprocessing ---
     with st.spinner("Loading and preprocessing data..."):
         if dataset_choice == 'CORROSION':
-            # Download and load the CORROSION dataset
             csv_url = "https://drive.google.com/uc?export=download&id=10GtBpEkWIp4J-miPzQrLIH6AWrMrLH-o"
             response = requests.get(csv_url)
             df = pd.read_csv(io.StringIO(response.text))
@@ -56,7 +55,6 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
             df["LogV"] = np.log10(df["v"])
             df["LogD"] = np.log10(df["d"])
 
-            # Transformation ranges for normalisation
             transformation_dict = {
                 "pH":    [5, 6],
                 "Tc":    [0, 100],
@@ -88,7 +86,6 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
             config.y = standardised_y
 
         elif dataset_choice == 'HEATSINK':
-            # Adjust the file path for the HEATSINK dataset
             heatsink_file = os.path.join("functions", "symbolic_regression_files", "data", "Latin_Hypercube_Heatsink_1000_samples.txt")
             with open(heatsink_file, "r") as f:
                 text = f.read()
@@ -119,7 +116,6 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
     config.DISPLAY_ERROR_MESSAGES = False
     config.VERBOSE = True
 
-    # Additional configuration for evolution
     config.SIMPLIFICATION_INDEX_INTERVAL = 20
     config.EARLY_STOPPING_THRESHOLD = 20
     config.FITNESS_REDUCTION_THRESHOLD = 5
@@ -129,11 +125,15 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
     config.DISPLAY_ERROR_MESSAGES = False
 
     # --- Initialize Population ---
-    with st.spinner("Initializing population..."):
+    with st.spinner("Generating initial population..."):
+        t0 = time.time()
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", RuntimeWarning)
-            init_population = Engine.initialize_population()
+            # Use verbose=1 if your Engine.initialize_population supports it.
+            init_population = Engine.initialize_population(verbose=1)
             Engine.evaluate_population(init_population)
+        init_time = time.time() - t0
+        st.write(f"Initial population generated in {init_time:.2f} seconds.")
     st.success("Population initialized.")
 
     new_population = init_population.copy()
@@ -149,9 +149,8 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
 
     # --- Real-Time Plotting Setup Using Streamlit ---
     fig, ax = plt.subplots()
-    plot_placeholder = st.empty()  # This placeholder will be updated in real time
+    plot_placeholder = st.empty()  # Placeholder for updating plot
 
-    # Set up a progress bar and a status text placeholder for the evolution loop.
     progress_bar = st.progress(0)
     status_placeholder = st.empty()
 
@@ -159,16 +158,13 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
     with st.spinner("Evolving population..."):
         for j, i in enumerate(range(iterations[-1], iterations[-1] + number_of_iterations)):
             status_placeholder.text(f"Evolution iteration {j+1} of {number_of_iterations}")
-            # Evolution step: Generate new population
             new_population = Engine.generate_new_population(population=new_population.copy())
 
-            # Apply simplification at intervals
             if config.USE_SIMPLIFICATION and i % config.SIMPLIFICATION_INDEX_INTERVAL == 0:
                 _, old_avg_complexity, _ = Engine.evaluate_population(new_population)
                 new_population = Engine.simplify_population(new_population)
                 _, avg_complexity, _ = Engine.evaluate_population(new_population)
 
-            # Evaluate population and record metrics
             avg_fitness, avg_complexity, optimal_fitness = Engine.evaluate_population(new_population)
             avg_fitness_arr.append(avg_fitness)
             avg_complexity_arr.append(avg_complexity)
@@ -188,39 +184,12 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
             if len(avg_fitness_arr) > config.FITNESS_REDUCTION_THRESHOLD:
                 if (min(avg_fitness_arr[-config.FITNESS_REDUCTION_THRESHOLD:]) == avg_fitness_arr[-config.FITNESS_REDUCTION_THRESHOLD]) and \
                    (config.FIT_THRESHOLD * config.FITNESS_REDUCTION_FACTOR > avg_fitness):
-                    config.FIT_THRESHOLD = config.FIT_THRESHOLD * config.FITNESS_REDUCTION_FACTOR
+                    config.FIT_THRESHOLD *= config.FITNESS_REDUCTION_FACTOR
                     fitness_reduction_indecies.append(i + 1)
 
             if len(avg_fitness_arr) > config.EARLY_STOPPING_THRESHOLD:
                 if min(avg_fitness_arr[-config.EARLY_STOPPING_THRESHOLD:]) == avg_fitness_arr[-config.EARLY_STOPPING_THRESHOLD]:
                     break
 
-            # Update the real-time plot
             ax.cla()
-            ax.plot(iterations, avg_fitness_arr, label="Average Population Fitness")
-            ax.plot(iterations, avg_complexity_arr, label="Complexity")
-            ax.plot(iterations, best_fitness_arr, label="Lowest Population Fitness")
-            ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-            ax.set_ylabel("Fitness - 1-$R^2$")
-            ax.set_xlabel("Iteration")
-            ax.set_yscale("log")
-            ax.set_title(f"Population Metrics {dataset_choice} // {output_var}")
-
-            plot_placeholder.pyplot(fig)
-            # Update progress bar (as a percentage)
-            progress = int(((j + 1) / number_of_iterations) * 100)
-            progress_bar.progress(progress)
-            time.sleep(0.1)
-    st.success("Evolution complete.")
-
-    # --- Determine the Best Individual ---
-    pareto_front = Engine.return_pareto_front(new_population)
-    pareto_front = list(pareto_front)
-    pareto_front.sort(key=lambda x: x['fitness'], reverse=False)
-    best_indiv = pareto_front[0]
-
-    # --- Convert Best Individual to a Sympy Expression and Wrap as an Equation ---
-    best_sympy_expr = simp.convert_expression_to_sympy(best_indiv['individual'])
-    equation = sp.Eq(sp.Symbol(output_var), best_sympy_expr)
-    st.latex(sp.latex(equation))
-    status_placeholder.text("Final equation computed.")
+            ax.plot(iterations, av
