@@ -104,7 +104,7 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
     # --- Set Evolution Parameters ---
     st.write("DEBUG: Setting evolution parameters")
     # Set the threshold directly to 10, similar to the heatsink project
-    config.FIT_THRESHOLD = 30  
+    config.FIT_THRESHOLD = 1000  
     config.POPULATION_SIZE = population_size
     config.POPULATION_RETENTION_SIZE = population_retention_size
     config.DISPLAY_ERROR_MESSAGES = False
