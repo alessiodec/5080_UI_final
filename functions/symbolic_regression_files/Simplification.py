@@ -1,8 +1,8 @@
 # functions/symbolic_regression_files/Simplification.py
 
 #  ------------ CODE JUST TO SIMPLIFY EXPRESSIONS ------------
-import config
-import EngineDict as Engine
+from . import config
+from . import EngineDict as Engine
 
 # Both for timer
 import multiprocessing
