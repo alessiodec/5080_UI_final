@@ -242,7 +242,8 @@ def initialize_population():
         individual = toolbox.individual()
         fitness, complexity = evaluate_individual(individual=individual)
         
-        if complexity > config.COMPLEXITY_MAX_THRESHOLD or complexity < config.COMPLEXITY_MIN_THRESHOLD or fitness > config.FIT_THRESHOLD:
+        # Remove fitness filtering: accept the individual if complexity is within bounds.
+        if complexity > config.COMPLEXITY_MAX_THRESHOLD or complexity < config.COMPLEXITY_MIN_THRESHOLD:
             continue
             
         key = convert_individual_to_key(individual)
@@ -260,6 +261,8 @@ def initialize_population():
          init_population = simplify_population(init_population)
     
     return init_population
+
+
 
 # ---------- Pareto and Dominance Functions ----------
 
