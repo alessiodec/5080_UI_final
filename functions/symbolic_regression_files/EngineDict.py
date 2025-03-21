@@ -118,12 +118,12 @@ config.PSET = pset
 # ---------- Evaluation Functions ----------
 
 def evaluate_individual(individual):
-    """
-    Compiles an individual into a callable function, evaluates its performance on the dataset,
-    and returns a tuple of (fitness, complexity).
-    """
     func = gp.compile(expr=individual, pset=pset)
     complexity = len(individual)
+    
+    # Add check for required terminals in HEATSINK
+    if config.DATASET == 'HEATSINK' and not (('G1' in str(individual)) and ('G2' in str(individual))):
+        return config.FIT_THRESHOLD + 1, complexity
     
     try:
         if config.DATASET == 'HEATSINK':
@@ -148,6 +148,7 @@ def evaluate_individual(individual):
         fitness = config.FIT_THRESHOLD + 1
 
     return fitness, complexity
+
 
 def evaluate_population(population):
     total_fitness = 0
@@ -374,7 +375,11 @@ def generate_new_population(population: dict):
     new_population = {}
     index_tracker = 0
     
-    while len(new_population) < config.POPULATION_SIZE:
+    max_attempts = config.POPULATION_SIZE * 10  # allow up to 10× as many attempts as the desired size
+    attempts = 0
+    
+    while len(new_population) < config.POPULATION_SIZE and attempts < max_attempts:
+        attempts += 1
         parent1, parent2 = tournament_selection(new_gen_parents)
         mate_mutation_results = mate_and_mutate(parent1, parent2)
     
@@ -394,8 +399,13 @@ def generate_new_population(population: dict):
             if key not in new_population or individual['fitness'] < new_population[key]['fitness']:
                 new_population[key] = individual
                 index_tracker = display_progress(population=new_population, last_printed_index=index_tracker)
-            
+    
+    if attempts >= max_attempts:
+        st.write("WARNING: Maximum attempts reached in generate_new_population; returning current population.")
+    
     return new_population
+
+
 
 # ---------- File I/O and Post-processing ----------
 
