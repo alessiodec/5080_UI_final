@@ -129,7 +129,6 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
         t0 = time.time()
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", RuntimeWarning)
-            # Use verbose=1 if your Engine.initialize_population supports it.
             init_population = Engine.initialize_population(verbose=1)
             Engine.evaluate_population(init_population)
         init_time = time.time() - t0
@@ -150,7 +149,6 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
     # --- Real-Time Plotting Setup Using Streamlit ---
     fig, ax = plt.subplots()
     plot_placeholder = st.empty()  # Placeholder for updating plot
-
     progress_bar = st.progress(0)
     status_placeholder = st.empty()
 
@@ -182,8 +180,7 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
                     changing_pareto_front_indecies.append(i)
 
             if len(avg_fitness_arr) > config.FITNESS_REDUCTION_THRESHOLD:
-                if (min(avg_fitness_arr[-config.FITNESS_REDUCTION_THRESHOLD:]) == avg_fitness_arr[-config.FITNESS_REDUCTION_THRESHOLD]) and \
-                   (config.FIT_THRESHOLD * config.FITNESS_REDUCTION_FACTOR > avg_fitness):
+                if (min(avg_fitness_arr[-config.FITNESS_REDUCTION_THRESHOLD:]) == avg_fitness_arr[-config.FITNESS_REDUCTION_THRESHOLD]) and (config.FIT_THRESHOLD * config.FITNESS_REDUCTION_FACTOR > avg_fitness):
                     config.FIT_THRESHOLD *= config.FITNESS_REDUCTION_FACTOR
                     fitness_reduction_indecies.append(i + 1)
 
@@ -192,4 +189,27 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
                     break
 
             ax.cla()
-            ax.plot(iterations, av
+            ax.plot(iterations, avg_fitness_arr, label="Average Population Fitness")
+            ax.plot(iterations, avg_complexity_arr, label="Complexity")
+            ax.plot(iterations, best_fitness_arr, label="Lowest Population Fitness")
+            ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+            ax.set_ylabel("Fitness - 1-$R^2$")
+            ax.set_xlabel("Iteration")
+            ax.set_yscale("log")
+            ax.set_title(f"Population Metrics {dataset_choice} // {output_var}")
+
+            plot_placeholder.pyplot(fig)
+            progress = int(((j + 1) / number_of_iterations) * 100)
+            progress_bar.progress(progress)
+            time.sleep(0.1)
+    st.success("Evolution complete.")
+
+    pareto_front = Engine.return_pareto_front(new_population)
+    pareto_front = list(pareto_front)
+    pareto_front.sort(key=lambda x: x['fitness'], reverse=False)
+    best_indiv = pareto_front[0]
+
+    best_sympy_expr = simp.convert_expression_to_sympy(best_indiv['individual'])
+    equation = sp.Eq(sp.Symbol(output_var), best_sympy_expr)
+    st.latex(sp.latex(equation))
+    status_placeholder.text("Final equation computed.")
