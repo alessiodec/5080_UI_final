@@ -34,80 +34,82 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
     Behavior:
       - Loads and preprocesses the chosen dataset.
       - Configures the evolution parameters.
-      - Initializes the population and evolves it while updating a real‑time plot in Streamlit.
+      - Initializes the population and evolves it while updating a real‑time plot and progress bar in Streamlit.
       - At the end, displays the best simplified equation formatted as, for example: "CR = [expression]".
     """
     # Set the dataset in config
     config.DATASET = dataset_choice
 
     # --- Data Loading and Preprocessing ---
-    if dataset_choice == 'CORROSION':
-        # Download and load the CORROSION dataset
-        csv_url = "https://drive.google.com/uc?export=download&id=10GtBpEkWIp4J-miPzQrLIH6AWrMrLH-o"
-        response = requests.get(csv_url)
-        df = pd.read_csv(io.StringIO(response.text))
-        df.rename(columns={"Pp CO2": "PpCO2"}, inplace=True)
-        df = df.replace('', np.nan)
-        df = df.astype(float)
+    with st.spinner("Loading and preprocessing data..."):
+        if dataset_choice == 'CORROSION':
+            # Download and load the CORROSION dataset
+            csv_url = "https://drive.google.com/uc?export=download&id=10GtBpEkWIp4J-miPzQrLIH6AWrMrLH-o"
+            response = requests.get(csv_url)
+            df = pd.read_csv(io.StringIO(response.text))
+            df.rename(columns={"Pp CO2": "PpCO2"}, inplace=True)
+            df = df.replace('', np.nan)
+            df = df.astype(float)
 
-        # Create logarithmic columns
-        df["LogP"] = np.log10(df["PpCO2"])
-        df["LogV"] = np.log10(df["v"])
-        df["LogD"] = np.log10(df["d"])
+            # Create logarithmic columns
+            df["LogP"] = np.log10(df["PpCO2"])
+            df["LogV"] = np.log10(df["v"])
+            df["LogD"] = np.log10(df["d"])
 
-        # Transformation ranges for normalisation
-        transformation_dict = {
-            "pH":    [5, 6],
-            "Tc":    [0, 100],
-            "LogP":  [-1, 1],
-            "LogV":  [-1, 1],
-            "LogD":  [-2, 0],
-        }
+            # Transformation ranges for normalisation
+            transformation_dict = {
+                "pH":    [5, 6],
+                "Tc":    [0, 100],
+                "LogP":  [-1, 1],
+                "LogV":  [-1, 1],
+                "LogD":  [-2, 0],
+            }
 
-        np.random.seed(42)
-        sample_size = 2000
-        sample_indices = np.random.choice(df.index, size=sample_size, replace=False)
-        df_sampled = df.loc[sample_indices]
+            np.random.seed(42)
+            sample_size = 2000
+            sample_indices = np.random.choice(df.index, size=sample_size, replace=False)
+            df_sampled = df.loc[sample_indices]
 
-        X = df_sampled[["pH", "Tc", "LogP", "LogV", "LogD"]].values
-        y = df_sampled[output_var].values.reshape(-1,)
+            X = df_sampled[["pH", "Tc", "LogP", "LogV", "LogD"]].values
+            y = df_sampled[output_var].values.reshape(-1,)
 
-        transformed_X = np.array([
-            (X[:, i] - transformation_dict[col][0]) / (transformation_dict[col][1] - transformation_dict[col][0]) + 1
-            for i, col in enumerate(["pH", "Tc", "LogP", "LogV", "LogD"])
-        ]).T
+            transformed_X = np.array([
+                (X[:, i] - transformation_dict[col][0]) / (transformation_dict[col][1] - transformation_dict[col][0]) + 1
+                for i, col in enumerate(["pH", "Tc", "LogP", "LogV", "LogD"])
+            ]).T
 
-        mean_y = np.mean(y)
-        std_y = np.std(y)
-        config.mean_y = mean_y
-        config.std_y = std_y
-        standardised_y = (y - mean_y) / std_y
+            mean_y = np.mean(y)
+            std_y = np.std(y)
+            config.mean_y = mean_y
+            config.std_y = std_y
+            standardised_y = (y - mean_y) / std_y
 
-        config.X = transformed_X
-        config.y = standardised_y
+            config.X = transformed_X
+            config.y = standardised_y
 
-    elif dataset_choice == 'HEATSINK':
-        # Adjust the file path for the HEATSINK dataset
-        heatsink_file = os.path.join("functions", "symbolic_regression_files", "data", "Latin_Hypercube_Heatsink_1000_samples.txt")
-        with open(heatsink_file, "r") as f:
-            text = f.read()
-        data = [x.split(' ') for x in text.split('\n') if x.strip() != '']
-        df = pd.DataFrame(data, columns=['Geometric1', 'Geometric2', 'Thermal_Resistance', 'Pressure_Drop'])
-        df = df.apply(pd.to_numeric)
+        elif dataset_choice == 'HEATSINK':
+            # Adjust the file path for the HEATSINK dataset
+            heatsink_file = os.path.join("functions", "symbolic_regression_files", "data", "Latin_Hypercube_Heatsink_1000_samples.txt")
+            with open(heatsink_file, "r") as f:
+                text = f.read()
+            data = [x.split(' ') for x in text.split('\n') if x.strip() != '']
+            df = pd.DataFrame(data, columns=['Geometric1', 'Geometric2', 'Thermal_Resistance', 'Pressure_Drop'])
+            df = df.apply(pd.to_numeric)
 
-        X = df[['Geometric1', 'Geometric2']].values
-        y = df[output_var].values.reshape(-1,)
-        mean_y = np.mean(y)
-        std_y = np.std(y)
-        config.mean_y = mean_y
-        config.std_y = std_y
-        standardised_y = (y - mean_y) / std_y
+            X = df[['Geometric1', 'Geometric2']].values
+            y = df[output_var].values.reshape(-1,)
+            mean_y = np.mean(y)
+            std_y = np.std(y)
+            config.mean_y = mean_y
+            config.std_y = std_y
+            standardised_y = (y - mean_y) / std_y
 
-        config.X = X
-        config.y = standardised_y
-    else:
-        st.error("Invalid dataset choice provided.")
-        return
+            config.X = X
+            config.y = standardised_y
+        else:
+            st.error("Invalid dataset choice provided.")
+            return
+    st.success("Data loaded and preprocessed.")
 
     # --- Set Evolution Parameters ---
     config.POPULATION_SIZE = population_size
@@ -127,10 +129,12 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
     config.DISPLAY_ERROR_MESSAGES = False
 
     # --- Initialize Population ---
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", RuntimeWarning)
-        init_population = Engine.initialize_population()
-        Engine.evaluate_population(init_population)
+    with st.spinner("Initializing population..."):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", RuntimeWarning)
+            init_population = Engine.initialize_population()
+            Engine.evaluate_population(init_population)
+    st.success("Population initialized.")
 
     new_population = init_population.copy()
     avg_fitness, avg_complexity, optimal_fitness = Engine.evaluate_population(new_population)
@@ -147,10 +151,14 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
     fig, ax = plt.subplots()
     plot_placeholder = st.empty()  # This placeholder will be updated in real time
 
+    # Set up a progress bar and a status text placeholder for the evolution loop.
+    progress_bar = st.progress(0)
+    status_placeholder = st.empty()
+
     start_time = time.time()
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", RuntimeWarning)
-        for i in range(iterations[-1], iterations[-1] + number_of_iterations):
+    with st.spinner("Evolving population..."):
+        for j, i in enumerate(range(iterations[-1], iterations[-1] + number_of_iterations)):
+            status_placeholder.text(f"Evolution iteration {j+1} of {number_of_iterations}")
             # Evolution step: Generate new population
             new_population = Engine.generate_new_population(population=new_population.copy())
 
@@ -199,7 +207,11 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
             ax.set_title(f"Population Metrics {dataset_choice} // {output_var}")
 
             plot_placeholder.pyplot(fig)
+            # Update progress bar (as a percentage)
+            progress = int(((j + 1) / number_of_iterations) * 100)
+            progress_bar.progress(progress)
             time.sleep(0.1)
+    st.success("Evolution complete.")
 
     # --- Determine the Best Individual ---
     pareto_front = Engine.return_pareto_front(new_population)
@@ -211,3 +223,4 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
     best_sympy_expr = simp.convert_expression_to_sympy(best_indiv['individual'])
     equation = sp.Eq(sp.Symbol(output_var), best_sympy_expr)
     st.latex(sp.latex(equation))
+    status_placeholder.text("Final equation computed.")
