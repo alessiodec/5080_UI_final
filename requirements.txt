@@ -11,4 +11,3 @@ deap
 sympy
 pymoo
 requests
-io
