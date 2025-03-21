@@ -1,6 +1,6 @@
 import streamlit as st
 import matplotlib.pyplot as plt
-from functions.symbolic_regression_files.run_experiment import run_evolution_experiment
+from functions.symbolic_regression_functions import run_evolution_experiment
 
 def run():
     # Page title and explanation.
@@ -82,3 +82,6 @@ def run():
         st.session_state.pop('output', None)
         st.experimental_set_query_params(page="Home")
         st.experimental_rerun()
+
+if __name__ == "__main__":
+    run()
