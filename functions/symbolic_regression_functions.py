@@ -103,30 +103,33 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
 
     # --- Set Evolution Parameters ---
     st.write("DEBUG: Setting evolution parameters")
+    # Set the threshold directly to 10, similar to the heatsink project
+    config.FIT_THRESHOLD = 10  
     config.POPULATION_SIZE = population_size
     config.POPULATION_RETENTION_SIZE = population_retention_size
-    config.FIT_THRESHOLD = 1
-    config.USE_SIMPLIFICATION = False
     config.DISPLAY_ERROR_MESSAGES = False
     config.VERBOSE = True
 
     # Additional configuration for evolution
-    config.SIMPLIFICATION_INDEX_INTERVAL = 20
+    config.SIMPLIFICATION_INDEX_INTERVAL = 100  # Increase interval to reduce frequency
     config.EARLY_STOPPING_THRESHOLD = 20
     config.FITNESS_REDUCTION_THRESHOLD = 5
-    config.USE_SIMPLIFICATION = True
+    # Disable simplification during initialization to speed things up:
+    config.USE_SIMPLIFICATION = False  
     config.FITNESS_REDUCTION_FACTOR = 0.8
-    config.FIT_THRESHOLD = 10
-    config.DISPLAY_ERROR_MESSAGES = False
     st.write("DEBUG: Evolution parameters set")
 
     # --- Initialize Population ---
     with st.spinner("Initializing population..."):
         st.write("DEBUG: Calling Engine.initialize_population()")
-        init_population = Engine.initialize_population()
+        # If Engine.initialize_population supports a verbose flag, you can pass it (e.g., verbose=1)
+        init_population = Engine.initialize_population()  
         st.write("DEBUG: Evaluating initial population")
         Engine.evaluate_population(init_population)
     st.write("DEBUG: Population initialization complete")
+
+    # Optionally, you can re-enable simplification after initialization if needed:
+    config.USE_SIMPLIFICATION = True
 
     new_population = init_population.copy()
     avg_fitness, avg_complexity, optimal_fitness = Engine.evaluate_population(new_population)
@@ -157,7 +160,7 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
             new_population = Engine.generate_new_population(population=new_population.copy())
             st.write(f"DEBUG: Generated new population at iteration {i+1}")
 
-            # Apply simplification at intervals
+            # Apply simplification at intervals (less frequently now)
             if config.USE_SIMPLIFICATION and i % config.SIMPLIFICATION_INDEX_INTERVAL == 0:
                 st.write(f"DEBUG: Applying simplification at iteration {i+1}")
                 _, old_avg_complexity, _ = Engine.evaluate_population(new_population)
@@ -209,7 +212,8 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
 
             plot_placeholder.pyplot(fig)
             evolution_progress.progress((i + 1) / number_of_iterations)
-            time.sleep(0.1)
+            # Removed sleep delay for faster processing
+
     st.write("DEBUG: Evolution iterations complete")
 
     # --- Determine the Best Individual ---
