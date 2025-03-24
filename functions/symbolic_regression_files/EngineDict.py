@@ -121,10 +121,17 @@ def evaluate_individual(individual):
     func = gp.compile(expr=individual, pset=pset)
     complexity = len(individual)
     
-    # Add check for required terminals in HEATSINK
+    # Check for required terminals in HEATSINK
     if config.DATASET == 'HEATSINK' and not (('G1' in str(individual)) and ('G2' in str(individual))):
         return config.FIT_THRESHOLD + 1, complexity
-    
+
+    # Add a similar check for CORROSION
+    if config.DATASET == 'CORROSION':
+        individual_str = str(individual)
+        required_terms = ["pH", "T", "LogP", "LogV", "LogD"]
+        if not all(term in individual_str for term in required_terms):
+            return config.FIT_THRESHOLD + 1, complexity
+
     try:
         if config.DATASET == 'HEATSINK':
             y_pred = [func(x[0], x[1]) for x in config.X]
@@ -141,13 +148,14 @@ def evaluate_individual(individual):
             fitness = root_mean_squared_error(config.y, y_pred)
         else:
             fitness = 1 - r2_score(config.y, y_pred)
-
+    
     except Exception as e:
         if config.DISPLAY_ERROR_MESSAGES:
             st.write(e)
         fitness = config.FIT_THRESHOLD + 1
-
+    
     return fitness, complexity
+
 
 
 def evaluate_population(population):
