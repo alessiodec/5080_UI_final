@@ -25,7 +25,10 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
     
     # Set the dataset in config
     config.DATASET = dataset_choice
-
+    
+    # Reinitialize the primitive set and toolbox based on the updated dataset
+    Engine.initialize_primitive_set()
+    
     # --- Data Loading and Preprocessing ---
     with st.spinner("Loading and preprocessing dataset..."):
         if dataset_choice == 'CORROSION':
@@ -103,7 +106,6 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
 
     # --- Set Evolution Parameters ---
     st.write("DEBUG: Setting evolution parameters")
-    # Set the threshold directly to 10, similar to the heatsink project
     config.FIT_THRESHOLD = 1000
     config.POPULATION_SIZE = population_size
     config.POPULATION_RETENTION_SIZE = population_retention_size
@@ -122,7 +124,6 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
     # --- Initialize Population ---
     with st.spinner("Initializing population..."):
         st.write("DEBUG: Calling Engine.initialize_population()")
-        # If Engine.initialize_population supports a verbose flag, you can pass it (e.g., verbose=1)
         init_population = Engine.initialize_population()  
         st.write("DEBUG: Evaluating initial population")
         Engine.evaluate_population(init_population)
