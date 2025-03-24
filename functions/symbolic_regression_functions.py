@@ -37,9 +37,6 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
             df.rename(columns={"Pp CO2": "PpCO2"}, inplace=True)
             df = df.replace('', np.nan)
             df = df.astype(float)
-            st.write("DEBUG: Raw DF shape:", df.shape)
-            st.write("DEBUG: DF columns:", df.columns.tolist())
-            st.write("DEBUG: DF sample:\n", df.head())
 
             # Create logarithmic columns
             df["LogP"] = np.log10(df["PpCO2"])
@@ -59,22 +56,17 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
             sample_size = 2000
             sample_indices = np.random.choice(df.index, size=sample_size, replace=False)
             df_sampled = df.loc[sample_indices]
-            st.write("DEBUG: Sampled DF shape:", df_sampled.shape)
 
             X = df_sampled[["pH", "Tc", "LogP", "LogV", "LogD"]].values
             y = df_sampled[output_var].values.reshape(-1,)
-            st.write("DEBUG: Feature matrix shape:", X.shape)
-            st.write("DEBUG: Target vector shape:", y.shape)
 
             transformed_X = np.array([
                 (X[:, i] - transformation_dict[col][0]) / (transformation_dict[col][1] - transformation_dict[col][0]) + 1
                 for i, col in enumerate(["pH", "Tc", "LogP", "LogV", "LogD"])
             ]).T
-            st.write("DEBUG: Transformed X shape:", transformed_X.shape)
 
             mean_y = np.mean(y)
             std_y = np.std(y)
-            st.write("DEBUG: Mean y:", mean_y, "STD y:", std_y)
             config.mean_y = mean_y
             config.std_y = std_y
             standardised_y = (y - mean_y) / std_y
@@ -92,17 +84,11 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
             data = [x.split(' ') for x in text.split('\n') if x.strip() != '']
             df = pd.DataFrame(data, columns=['Geometric1', 'Geometric2', 'Thermal_Resistance', 'Pressure_Drop'])
             df = df.apply(pd.to_numeric)
-            st.write("DEBUG: Heatsink DF shape:", df.shape)
-            st.write("DEBUG: Heatsink DF sample:\n", df.head())
 
             X = df[['Geometric1', 'Geometric2']].values
             y = df[output_var].values.reshape(-1,)
-            st.write("DEBUG: Feature matrix shape:", X.shape)
-            st.write("DEBUG: Target vector shape:", y.shape)
-
             mean_y = np.mean(y)
             std_y = np.std(y)
-            st.write("DEBUG: Mean y:", mean_y, "STD y:", std_y)
             config.mean_y = mean_y
             config.std_y = std_y
             standardised_y = (y - mean_y) / std_y
@@ -117,15 +103,18 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
 
     # --- Set Evolution Parameters ---
     st.write("DEBUG: Setting evolution parameters")
+    # Set the threshold directly to 10, similar to the heatsink project
     config.FIT_THRESHOLD = 10  
     config.POPULATION_SIZE = population_size
     config.POPULATION_RETENTION_SIZE = population_retention_size
     config.DISPLAY_ERROR_MESSAGES = False
     config.VERBOSE = True
 
-    config.SIMPLIFICATION_INDEX_INTERVAL = 100  
+    # Additional configuration for evolution
+    config.SIMPLIFICATION_INDEX_INTERVAL = 100  # Increase interval to reduce frequency
     config.EARLY_STOPPING_THRESHOLD = 20
     config.FITNESS_REDUCTION_THRESHOLD = 5
+    # Disable simplification during initialization to speed things up:
     config.USE_SIMPLIFICATION = False  
     config.FITNESS_REDUCTION_FACTOR = 0.8
     st.write("DEBUG: Evolution parameters set")
@@ -133,18 +122,17 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
     # --- Initialize Population ---
     with st.spinner("Initializing population..."):
         st.write("DEBUG: Calling Engine.initialize_population()")
+        # If Engine.initialize_population supports a verbose flag, you can pass it (e.g., verbose=1)
         init_population = Engine.initialize_population()  
-        st.write("DEBUG: Number of individuals in initial population:", len(init_population))
         st.write("DEBUG: Evaluating initial population")
         Engine.evaluate_population(init_population)
     st.write("DEBUG: Population initialization complete")
 
-    # Optionally, re-enable simplification after initialization if needed:
+    # Optionally, you can re-enable simplification after initialization if needed:
     config.USE_SIMPLIFICATION = True
 
     new_population = init_population.copy()
     avg_fitness, avg_complexity, optimal_fitness = Engine.evaluate_population(new_population)
-    st.write("DEBUG: Initial Avg Fitness:", avg_fitness, "Initial Avg Complexity:", avg_complexity)
     iterations = [0]
     avg_fitness_arr = [avg_fitness]
     avg_complexity_arr = [avg_complexity]
@@ -168,22 +156,17 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
         warnings.simplefilter("ignore", RuntimeWarning)
         for i in range(iterations[-1], iterations[-1] + number_of_iterations):
             st.write(f"DEBUG: Starting iteration {i+1}")
-            
             # Evolution step: Generate new population
             new_population = Engine.generate_new_population(population=new_population.copy())
-            st.write(f"DEBUG: Generated new population at iteration {i+1}, size: {len(new_population)}")
-            # Print sample individual from the population (if exists)
-            if len(new_population) > 0:
-                sample_key = list(new_population.keys())[0]
-                st.write("DEBUG: Sample individual:", str(new_population[sample_key]['individual']))
-            
-            # Apply simplification at intervals (if enabled)
+            st.write(f"DEBUG: Generated new population at iteration {i+1}")
+
+            # Apply simplification at intervals (less frequently now)
             if config.USE_SIMPLIFICATION and i % config.SIMPLIFICATION_INDEX_INTERVAL == 0:
                 st.write(f"DEBUG: Applying simplification at iteration {i+1}")
                 _, old_avg_complexity, _ = Engine.evaluate_population(new_population)
                 new_population = Engine.simplify_population(new_population)
                 _, avg_complexity, _ = Engine.evaluate_population(new_population)
-                st.write(f"DEBUG: Simplification complete at iteration {i+1}, new Avg Complexity: {avg_complexity}")
+                st.write(f"DEBUG: Simplification complete at iteration {i+1}")
 
             # Evaluate population and record metrics
             avg_fitness, avg_complexity, optimal_fitness = Engine.evaluate_population(new_population)
