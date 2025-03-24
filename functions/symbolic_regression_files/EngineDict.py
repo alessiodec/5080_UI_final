@@ -602,6 +602,47 @@ def initialize_primitive_set():
     # Now update the module-level variable to use the new toolbox
     toolbox = config.TOOLBOX
 
+def generate_new_population(population: dict):
+     new_gen_parents = generate_new_generation_NSGA_2(config.POPULATION_RETENTION_SIZE, population)
+     new_population = {}
+     index_tracker = 0
+ 
+     max_attempts = config.POPULATION_SIZE * 10  # Allow up to 10× as many attempts as the desired size
+     attempts = 0
+ 
+     while len(new_population) < config.POPULATION_SIZE and attempts < max_attempts:
+         attempts += 1
+         parent1, parent2 = tournament_selection(new_gen_parents)
+         mate_mutation_results = mate_and_mutate(parent1, parent2)
+ 
+         if config.MATE_MUTATE_SELECTION_METHOD == 'pareto':
+             selected_mate_mutation_results = return_pareto_front({i: m for i, m in enumerate(mate_mutation_results)})
+         elif config.MATE_MUTATE_SELECTION_METHOD == 'fitness':
+             mate_mutation_results.sort(key=lambda x: x['fitness'], reverse=False)
+             selected_mate_mutation_results = mate_mutation_results[:2]
+         else:
+             selected_mate_mutation_results = mate_mutation_results
+ 
+         for individual in selected_mate_mutation_results:
+             if (individual['complexity'] > config.COMPLEXITY_MAX_THRESHOLD or
+                 individual['complexity'] < config.COMPLEXITY_MIN_THRESHOLD or
+                 individual['fitness'] > config.FIT_THRESHOLD):
+                 continue
+ 
+             key = convert_individual_to_key(individual['individual'])
+             if key not in new_population or individual['fitness'] < new_population[key]['fitness']:
+                 new_population[key] = individual
+                 index_tracker = display_progress(population=new_population, last_printed_index=index_tracker)
+ 
+     if attempts >= max_attempts:
+         st.write("WARNING: Maximum attempts reached in generate_new_population; returning previous population.")
+ 
+     # If no new individuals were generated, return the original population instead of an empty dict.
+     if len(new_population) == 0:
+         return population
+ 
+     return new_population
+ 
 
 if __name__ == "__main__":
     st.write('Should not be run as main - EngineDict.py just contains utility functions')
