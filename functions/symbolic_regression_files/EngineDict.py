@@ -538,9 +538,6 @@ def get_pareto_scores(population):
     
     return scores_df
 
-if __name__ == "__main__":
-    st.write('Should not be run as main - EngineDict.py just contains utility functions')
-
 def initialize_primitive_set():
     from deap import base, creator, gp, tools
     from functools import partial
@@ -604,3 +601,7 @@ def initialize_primitive_set():
     # *** Critical step: update the module-level variable "toolbox" ***
     global toolbox
     toolbox = config.TOOLBOX
+
+
+if __name__ == "__main__":
+    st.write('Should not be run as main - EngineDict.py just contains utility functions')
