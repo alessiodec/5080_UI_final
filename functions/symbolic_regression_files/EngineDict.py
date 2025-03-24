@@ -539,6 +539,7 @@ def get_pareto_scores(population):
     return scores_df
 
 def initialize_primitive_set():
+    global toolbox  # Declare at the very beginning
     from deap import base, creator, gp, tools
     from functools import partial
     import operator
@@ -598,8 +599,7 @@ def initialize_primitive_set():
     # Update the global config for TOOLBOX
     config.TOOLBOX = toolbox
 
-    # *** Critical step: update the module-level variable "toolbox" ***
-    global toolbox
+    # Now update the module-level variable to use the new toolbox
     toolbox = config.TOOLBOX
 
 
