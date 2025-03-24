@@ -51,7 +51,7 @@ def protectedExp(value):
     except Exception:
         raise CustomOperationException('protectedExp Error')
 
-# Generate random constants between -1 and 1 (rounded to 4dp)
+#  random constants between -1 and 1 (rounded to 4dp)
 def random_constant():
     return round(random.uniform(-1, 1), 4)
 
@@ -299,7 +299,7 @@ def dominates(ind1, ind2):
     fitness_2, complexity_2 = ind2['fitness'], ind2['complexity']
     return (fitness_1 <= fitness_2 and complexity_1 <= complexity_2) and (fitness_1 < fitness_2 or complexity_1 < complexity_2)
 
-def generate_new_generation_NSGA_2(n, population, tournament_selection=False):
+def _new_generation_NSGA_2(n, population, tournament_selection=False):
     dominated_counts = [0] * len(population)
 
     if isinstance(population, dict):
@@ -342,7 +342,7 @@ def tournament_selection(parent_generation: list, n_selected=2):
     tournament = random.sample(parent_generation, config.TORNEMENT_SIZE)
     
     if config.TORN_SELECTION_METHOD == 'pareto':
-        selected = generate_new_generation_NSGA_2(n_selected, tournament, tournament_selection=True)
+        selected = _new_generation_NSGA_2(n_selected, tournament, tournament_selection=True)
     else:
         tournament.sort(key=lambda x: x['fitness'], reverse=False)
         selected = tournament[:2]
@@ -383,8 +383,8 @@ def mate_and_mutate(parent1, parent2, cxpb=0.95, mutpb=0.5):
     
     return custom_parent_arr
 
-def generate_new_population(population: dict):
-    new_gen_parents = generate_new_generation_NSGA_2(config.POPULATION_RETENTION_SIZE, population)
+def _new_population(population: dict):
+    new_gen_parents = _new_generation_NSGA_2(config.POPULATION_RETENTION_SIZE, population)
     new_population = {}
     index_tracker = 0
     
@@ -416,9 +416,9 @@ def generate_new_population(population: dict):
                 index_tracker = display_progress(population=new_population, last_printed_index=index_tracker)
     
     if attempts >= max_attempts:
-        st.write("WARNING: Maximum attempts reached in generate_new_population; returning previous population.")
+        st.write("WARNING: Maximum attempts reached in _new_population; returning previous population.")
     
-    # If no new individuals were generated, return the original population instead of an empty dict.
+    # If no new individuals were d, return the original population instead of an empty dict.
     if len(new_population) == 0:
         return population
     
