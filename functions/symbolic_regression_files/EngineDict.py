@@ -120,7 +120,7 @@ config.PSET = pset
 def evaluate_individual(individual):
     func = gp.compile(expr=individual, pset=pset)
     complexity = len(individual)
-    
+'''
     # Check for required terminals in HEATSINK
     if config.DATASET == 'HEATSINK' and not (('G1' in str(individual)) and ('G2' in str(individual))):
         return config.FIT_THRESHOLD + 1, complexity
@@ -132,6 +132,7 @@ def evaluate_individual(individual):
         if not all(term in individual_str for term in required_terms):
             return config.FIT_THRESHOLD + 1, complexity
 
+'''
     try:
         if config.DATASET == 'HEATSINK':
             y_pred = [func(x[0], x[1]) for x in config.X]
