@@ -342,7 +342,7 @@ def tournament_selection(parent_generation: list, n_selected=2):
     tournament = random.sample(parent_generation, config.TORNEMENT_SIZE)
     
     if config.TORN_SELECTION_METHOD == 'pareto':
-        selected = _new_generation_NSGA_2(n_selected, tournament, tournament_selection=True)
+        selected = generate_new_generation_NSGA_2(n_selected, tournament, tournament_selection=True)
     else:
         tournament.sort(key=lambda x: x['fitness'], reverse=False)
         selected = tournament[:2]
