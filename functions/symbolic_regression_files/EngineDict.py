@@ -299,7 +299,7 @@ def dominates(ind1, ind2):
     fitness_2, complexity_2 = ind2['fitness'], ind2['complexity']
     return (fitness_1 <= fitness_2 and complexity_1 <= complexity_2) and (fitness_1 < fitness_2 or complexity_1 < complexity_2)
 
-def _new_generation_NSGA_2(n, population, tournament_selection=False):
+def generate_new_generation_NSGA_2(n, population, tournament_selection=False):
     dominated_counts = [0] * len(population)
 
     if isinstance(population, dict):
@@ -383,7 +383,7 @@ def mate_and_mutate(parent1, parent2, cxpb=0.95, mutpb=0.5):
     
     return custom_parent_arr
 
-def _new_population(population: dict):
+def generate_new_population(population: dict):
     new_gen_parents = _new_generation_NSGA_2(config.POPULATION_RETENTION_SIZE, population)
     new_population = {}
     index_tracker = 0
