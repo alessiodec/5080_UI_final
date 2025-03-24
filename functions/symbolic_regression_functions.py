@@ -26,11 +26,6 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
     # Set the dataset in config
     config.DATASET = dataset_choice
 
-    import importlib
-    importlib.reload(EngineDict)
-    importlib.reload(Plotting)
-    importlib.reload(simp)
-
     # --- Data Loading and Preprocessing ---
     with st.spinner("Loading and preprocessing dataset..."):
         if dataset_choice == 'CORROSION':
