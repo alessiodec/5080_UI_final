@@ -540,3 +540,65 @@ def get_pareto_scores(population):
 
 if __name__ == "__main__":
     st.write('Should not be run as main - EngineDict.py just contains utility functions')
+
+
+def initialize_primitive_set():
+    from deap import base, creator, gp, tools
+    from functools import partial
+    import operator
+    import random
+    import math
+    from . import config
+
+    # Determine the number of inputs based on the dataset
+    if config.DATASET == 'HEATSINK':
+        num_inputs = 2
+    elif config.DATASET == 'CORROSION':
+        num_inputs = 5
+    elif config.DATASET == 'BENCHMARK':
+        num_inputs = 3
+    else:
+        raise ValueError("Invalid dataset in config.DATASET")
+
+    # Create the primitive set with the correct number of inputs
+    pset = gp.PrimitiveSet("MAIN", arity=num_inputs)
+
+    # Add primitives as before
+    pset.addPrimitive(operator.add, 2)
+    pset.addPrimitive(operator.sub, 2)
+    pset.addPrimitive(operator.mul, 2)
+    pset.addPrimitive(protectedDiv, 2)
+    pset.addPrimitive(operator.pow, 2)
+    pset.addPrimitive(protectedExp, 1)
+    pset.addPrimitive(protectedLog, 1)
+    pset.addEphemeralConstant("randConst", partial(random_constant))
+    
+    # Rename arguments based on the dataset
+    if config.DATASET == 'HEATSINK':
+        pset.renameArguments(ARG0='G1')
+        pset.renameArguments(ARG1='G2')
+    elif config.DATASET == 'CORROSION':
+        pset.renameArguments(ARG0='pH')
+        pset.renameArguments(ARG1='T')
+        pset.renameArguments(ARG2='LogP')
+        pset.renameArguments(ARG3='LogV')
+        pset.renameArguments(ARG4='LogD')
+    elif config.DATASET == 'BENCHMARK':
+        pset.renameArguments(ARG0='X1')
+        pset.renameArguments(ARG1='X2')
+        pset.renameArguments(ARG2='X3')
+
+    # Update the global config for PSET
+    config.PSET = pset
+
+    # Create the toolbox and register functions
+    toolbox = base.Toolbox()
+    toolbox.register("expr", gp.genHalfAndHalf, pset=pset, min_=2, max_=4)
+    toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.expr)
+    toolbox.register("population", tools.initRepeat, list, toolbox.individual)
+    toolbox.register("mate", gp.cxOnePoint)
+    toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr, pset=pset)
+    
+    # Update the global config for TOOLBOX
+    config.TOOLBOX = toolbox
+
