@@ -191,7 +191,7 @@ def convert_individual_to_key(individual):
 def simplify_population(population):
     if config.VERBOSE:
         st.write('\n-------------- SIMPLIFICATION --------------')
-        
+    
     simplified_population = {}   
     index_tracker = 0
     
@@ -203,7 +203,7 @@ def simplify_population(population):
             if key not in simplified_population or individual['fitness'] < simplified_population[key]['fitness']:
                 simplified_population[key] = individual
             continue
-
+    
         simplified_indiv = simp.simplify_individual(individual['individual'])
         
         if simplified_indiv is None:
@@ -230,8 +230,13 @@ def simplify_population(population):
                     'individual': simplified_indiv,
                     'is_simplified': True,
                 }
-                    
+    
+    # Return original population if simplification filtered out everything.
+    if not simplified_population:
+        return population
+    
     return simplified_population
+
 
 # ---------- Population Initialization ----------
 
