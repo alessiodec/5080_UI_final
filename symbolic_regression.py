@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from functions.symbolic_regression_functions import run_evolution_experiment
 
 def run():
-    # Page title and explanation.
+    # Page title and explanation. 
     st.title("Symbolic Regression")
     st.write("This page enables users to configure and execute the symbolic regression algorithm by first selecting a dataset (e.g., corrosion or heatsink) and the desired output variable, then specifying key parameters such as population size, retention size, and the number of iterations. Once executed, the code performs an evolutionary search—using genetic programming principles—to iteratively refine candidate mathematical expressions until it identifies the best-fitting model; this expression is then converted to a symbolic equation and displayed in LaTeX format, offering a clear and interpretable insight into the relationships within the data.")
 
