@@ -8,7 +8,7 @@ from pymoo.algorithms.soo.nonconvex.de import DE
 from pymoo.operators.sampling.lhs import LHS
 import streamlit as st
 import matplotlib.pyplot as plt
-from joblib import dump, load
+from joblib import load
 from pymoo.decomposition.weighted_sum import WeightedSum
 from sklearn.preprocessing import MinMaxScaler
 
@@ -22,10 +22,10 @@ with st.spinner("Loading dataset..."):
 XData = Data_ph5[["pH", "T", "PCO2", "v", "d"]]
 YData = Data_ph5[["CR", "SR"]]
 
-# Apply log transformation to PCO2, v, and d
-XData["PCO2"] = np.log10(XData["PCO2"])
-XData["v"] = np.log10(XData["v"])
-XData["d"] = np.log10(XData["d"])
+# Use .loc to avoid SettingWithCopy warnings.
+XData.loc[:, "PCO2"] = np.log10(XData["PCO2"])
+XData.loc[:, "v"] = np.log10(XData["v"])
+XData.loc[:, "d"] = np.log10(XData["d"])
 XData = XData.dropna()
 YData = YData.dropna()
 
@@ -42,6 +42,23 @@ with st.spinner("Loading pre-trained models..."):
 with st.spinner("Fitting scaler on input data..."):
     scaler = preprocessing.StandardScaler()
     XDataScaled = scaler.fit_transform(XData).astype("float32")
+
+# -------------------------------------------------------------------
+# Load multiobjective optimisation results from the 'models' directory.
+# Make sure these joblib files are present in your 'models' folder.
+# -------------------------------------------------------------------
+with st.spinner("Loading multiobjective optimisation results..."):
+    advancedRobustProblemResultNSGAF = load("models/advancedRobustProblemResultNSGAF.joblib")
+    advancedRobustProblemResultNSGAX = load("models/advancedRobustProblemResultNSGAX.joblib")
+
+# -------------------------------------------------------------------
+# Normalize the Pareto objectives.
+# -------------------------------------------------------------------
+minMaxScaler = MinMaxScaler()
+normalisedadvancedRobustProblemparetoObjectivesNSGA = np.column_stack((
+    minMaxScaler.fit_transform(advancedRobustProblemResultNSGAF[:, 0].reshape(-1, 1)),
+    minMaxScaler.fit_transform(advancedRobustProblemResultNSGAF[:, 1].reshape(-1, 1))
+))
 
 # -------------------------------------------------------------------
 # Function to reverse scaling and log10 transformation.
@@ -156,7 +173,7 @@ def minimise_cr(d, PCO2):
 # Updated findWeightedSolution function to flatten weights to a 1D array.
 # -------------------------------------------------------------------
 def findWeightedSolution(weights):
-    weights = np.array(weights).flatten()   # Ensure weights is 1D.
+    weights = np.array(weights).flatten()
     decomp = WeightedSum()
     robustI = decomp(normalisedadvancedRobustProblemparetoObjectivesNSGA, weights).argmin()
     return robustI
@@ -170,12 +187,9 @@ def plot_pareto_front_traverse(weight_sensitivity, weight_cr):
     
     plt.rcParams['font.size'] = 20
     fig = plt.figure(figsize=(20, 10), dpi=300)
-    # Plot Pareto Front.
     plt.scatter(advancedRobustProblemResultNSGAF[:, 0], advancedRobustProblemResultNSGAF[:, 1],
                 facecolors='none', edgecolors="r", label="Pareto Front", marker="o")
-    # Plot Utopia Point (example coordinates).
     plt.scatter(0.0008762, 0.04218847, label="Utopia Point", color="limegreen", marker="o", s=250)
-    # Plot Optimal Design from robust solution.
     plt.scatter(advancedRobustProblemResultNSGAF[robustI, 0], advancedRobustProblemResultNSGAF[robustI, 1],
                 label="Optimum Design", color="limegreen", marker="x")
     plt.title("CR vs Sensitivity")
@@ -186,28 +200,14 @@ def plot_pareto_front_traverse(weight_sensitivity, weight_cr):
     return fig
 
 # -------------------------------------------------------------------
-# Precomputed multiobjective optimisation results loading and normalization.
+# Display default robust solution information using st.write.
 # -------------------------------------------------------------------
-advancedRobustProblemResultNSGAF = load('advancedRobustProblemResultNSGAF.joblib')
-advancedRobustProblemResultNSGAX = load('advancedRobustProblemResultNSGAX.joblib')
-
-advancedRobustProblemResultNSGAReversed = ReverseScalingandLog10(advancedRobustProblemResultNSGAX)
-
-minMaxScaler = MinMaxScaler()
-normalisedadvancedRobustProblemparetoObjectivesNSGA = np.column_stack((
-    minMaxScaler.fit_transform(advancedRobustProblemResultNSGAF[:, 0].reshape(-1, 1)),
-    minMaxScaler.fit_transform(advancedRobustProblemResultNSGAF[:, 1].reshape(-1, 1))
-))
-
-# -------------------------------------------------------------------
-# Print default robust solution information.
-# -------------------------------------------------------------------
-robustWeights = np.array([1, 1])  # Default weights: Sensitivity, CR.
+robustWeights = np.array([1, 1])
 robustI = findWeightedSolution(robustWeights)
 np.set_printoptions(suppress=True)
-print(f"""
+st.write(f"""
 The Obj. Fun. Values (Sens, CR) are: {np.around(advancedRobustProblemResultNSGAF[robustI], 7)} 
-and the Design Variables are: {np.around(advancedRobustProblemResultNSGAReversed[robustI], 7)}
+and the Design Variables are: {np.around(ReverseScalingandLog10(advancedRobustProblemResultNSGAX)[robustI], 7)}
 CR = {CorrosionModel.predict(advancedRobustProblemResultNSGAX[robustI].reshape(1, -1), verbose=False)[0]}
 SR = {10**SaturationModel.predict(advancedRobustProblemResultNSGAX[robustI].reshape(1, -1), verbose=False)[0]}
 """)
