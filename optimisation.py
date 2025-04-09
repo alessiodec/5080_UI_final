@@ -18,11 +18,11 @@ def optimisation_menu():
     - *Please wait up to one minute for each optimisation algorithm to be completed.*
     """)
     
-    # Button for minimising CR using user-defined d and PCO₂
+    # Existing button for minimising CR using user-defined d and PCO₂.
     if st.button("Minimise CR for Given d and PCO₂"):
         st.session_state["optimisation_page"] = "minimise_cr"
         
-    # New button to traverse the Pareto front
+    # New button to traverse the Pareto front.
     if st.button("Traverse Pareto Front"):
         st.session_state["optimisation_page"] = "pareto_front"
         
@@ -67,12 +67,12 @@ def traverse_pareto_page():
     **Weight Inputs:**  
     
     - **Sensitivity Weight:**  
-      Controls the importance of minimizing sensitivity—that is, how stable the corrosion rate (CR) is relative to small changes in the design variables. A higher value prioritizes more robust designs.
+      This value controls the importance of minimizing sensitivity – i.e. how stable the corrosion rate (CR) is against small changes in design variables. A higher weight emphasizes more robust designs.
     
     - **CR Weight:**  
-      Controls the importance of minimizing the corrosion rate (CR) itself. A higher value prioritizes designs with lower CR.
+      This value controls the importance of minimizing the corrosion rate (CR) itself. A higher weight will give priority to achieving a lower CR.
     
-    Adjust these weights to reflect your preferences between robustness and performance, then click **"Plot Pareto Front"**.
+    Adjust these weights to suit your design preferences, then click **"Plot Pareto Front"**.
     """)
     
     weight_sens = st.number_input("Sensitivity Weight", min_value=0.0, value=1.0, step=0.1, format="%.1f")
