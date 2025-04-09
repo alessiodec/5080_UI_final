@@ -195,7 +195,7 @@ def plot_pareto_front_traverse(weight_sensitivity, weight_cr):
                 facecolors='none', edgecolors="r", label="Pareto Front", marker="o")
     plt.scatter(0.0008762, 0.04218847, label="Utopia Point", color="limegreen", marker="o", s=250)
     plt.scatter(advancedRobustProblemResultNSGAF[robustI, 0], advancedRobustProblemResultNSGAF[robustI, 1],
-                label="Optimum Design", color="limegreen", marker="x")
+                label="Optimum Design", color="limegreen", marker="x", s=200)
     plt.title("CR vs Sensitivity")
     plt.ylabel("CR")
     plt.xlabel(r"$\|\nabla CR\|$")
