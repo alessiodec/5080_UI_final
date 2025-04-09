@@ -78,11 +78,11 @@ class MinimizeCR(ElementwiseProblem):
 
     def _evaluate(self, X, out, *args, **kwargs):
         full_design = np.zeros(5)
-        full_design[0] = X[0]       # pH
-        full_design[1] = X[1]       # T
-        full_design[2] = self.fixed_PCO2  # fixed, scaled PCO2
-        full_design[3] = X[2]       # v
-        full_design[4] = self.fixed_d     # fixed, scaled d
+        full_design[0] = X[0]            # pH
+        full_design[1] = X[1]            # T
+        full_design[2] = self.fixed_PCO2 # fixed, scaled PCO2
+        full_design[3] = X[2]            # v
+        full_design[4] = self.fixed_d    # fixed, scaled d
         full_design = full_design.reshape(1, -1)
 
         corrosionResult = CorrosionModel.predict(full_design, verbose=False).flatten()
@@ -153,29 +153,29 @@ def minimise_cr(d, PCO2):
     return best_params, final_cr
 
 # -------------------------------------------------------------------
-# Update findWeightedSolution function to use passed weights
+# Updated findWeightedSolution function to flatten weights to a 1D array.
 # -------------------------------------------------------------------
 def findWeightedSolution(weights):
-    # Initialise decomposition function
+    weights = np.array(weights).flatten()   # Ensure weights is 1D.
     decomp = WeightedSum()
     robustI = decomp(normalisedadvancedRobustProblemparetoObjectivesNSGA, weights).argmin()
     return robustI
 
 # -------------------------------------------------------------------
-# New function to plot Pareto front with user-defined weights
+# New function to plot Pareto front with user-defined weights.
 # -------------------------------------------------------------------
 def plot_pareto_front_traverse(weight_sensitivity, weight_cr):
-    weights = np.array([[weight_sensitivity, weight_cr]])
+    weights = np.array([weight_sensitivity, weight_cr])
     robustI = findWeightedSolution(weights)
     
     plt.rcParams['font.size'] = 20
     fig = plt.figure(figsize=(20, 10), dpi=300)
-    # Plot Pareto Front
+    # Plot Pareto Front.
     plt.scatter(advancedRobustProblemResultNSGAF[:, 0], advancedRobustProblemResultNSGAF[:, 1],
                 facecolors='none', edgecolors="r", label="Pareto Front", marker="o")
-    # Plot Utopia Point (example coordinates)
+    # Plot Utopia Point (example coordinates).
     plt.scatter(0.0008762, 0.04218847, label="Utopia Point", color="limegreen", marker="o", s=250)
-    # Plot Optimal Design from robust solution
+    # Plot Optimal Design from robust solution.
     plt.scatter(advancedRobustProblemResultNSGAF[robustI, 0], advancedRobustProblemResultNSGAF[robustI, 1],
                 label="Optimum Design", color="limegreen", marker="x")
     plt.title("CR vs Sensitivity")
@@ -186,9 +186,23 @@ def plot_pareto_front_traverse(weight_sensitivity, weight_cr):
     return fig
 
 # -------------------------------------------------------------------
-# The following lines print out the optimal robust design information based on default weights.
+# Precomputed multiobjective optimisation results loading and normalization.
 # -------------------------------------------------------------------
-robustWeights = np.array([[1, 1]])  # Default weights: Sensitivity, CR
+advancedRobustProblemResultNSGAF = load('advancedRobustProblemResultNSGAF.joblib')
+advancedRobustProblemResultNSGAX = load('advancedRobustProblemResultNSGAX.joblib')
+
+advancedRobustProblemResultNSGAReversed = ReverseScalingandLog10(advancedRobustProblemResultNSGAX)
+
+minMaxScaler = MinMaxScaler()
+normalisedadvancedRobustProblemparetoObjectivesNSGA = np.column_stack((
+    minMaxScaler.fit_transform(advancedRobustProblemResultNSGAF[:, 0].reshape(-1, 1)),
+    minMaxScaler.fit_transform(advancedRobustProblemResultNSGAF[:, 1].reshape(-1, 1))
+))
+
+# -------------------------------------------------------------------
+# Print default robust solution information.
+# -------------------------------------------------------------------
+robustWeights = np.array([1, 1])  # Default weights: Sensitivity, CR.
 robustI = findWeightedSolution(robustWeights)
 np.set_printoptions(suppress=True)
 print(f"""
