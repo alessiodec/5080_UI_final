@@ -7,6 +7,10 @@ from pymoo.core.problem import ElementwiseProblem
 from pymoo.algorithms.soo.nonconvex.de import DE
 from pymoo.operators.sampling.lhs import LHS
 import streamlit as st
+import matplotlib.pyplot as plt
+from joblib import dump, load
+from pymoo.decomposition.weighted_sum import WeightedSum
+from sklearn.preprocessing import MinMaxScaler
 
 # -------------------------------------------------------------------
 # Load dataset and prepare data
@@ -26,7 +30,7 @@ XData = XData.dropna()
 YData = YData.dropna()
 
 # -------------------------------------------------------------------
-# Load pre-trained models
+# Load pre-trained models from the 'models' directory
 # -------------------------------------------------------------------
 with st.spinner("Loading pre-trained models..."):
     CorrosionModel = load_model("models/CorrosionRateModel.keras", compile=False)
@@ -93,7 +97,6 @@ class MinimizeCR(ElementwiseProblem):
 # Displays one final table with all values.
 # -------------------------------------------------------------------
 def minimise_cr(d, PCO2):
-    # Display a message that the process may take up to one minute.
     st.write("Please Allow up to one Minute for the Optimisation Process to Complete")
 
     with st.spinner("Transforming inputs using log10..."):
@@ -128,21 +131,14 @@ def minimise_cr(d, PCO2):
         best_params = ReverseScalingandLog10(full_design_scaled)
 
     with st.spinner("Computing final model predictions..."):
-        # best_params is in original units; since scaler was fitted on log-transformed inputs,
-        # convert columns 2-4 back to log10.
         best_params_log = best_params.copy()
         best_params_log[:, 2:] = np.log10(best_params_log[:, 2:])
         scaled_final = scaler.transform(best_params_log)
         final_cr = CorrosionModel.predict(scaled_final, verbose=False).flatten()[0]
         final_sr = SaturationModel.predict(scaled_final, verbose=False).flatten()[0]
 
-    # Create final vector: [pH, T, CO₂, v, d, CR, SR]
     final_vector = np.concatenate((best_params.flatten(), [final_cr, final_sr]))
-
-    # Display a message before the final table.
     st.write("Final Design Vector (Input variables and predicted outputs):")
-
-    # Column headers with units (adjust units as needed)
     column_headers = [
         "pH (-)",
         "T (°C)",
@@ -154,5 +150,50 @@ def minimise_cr(d, PCO2):
     ]
     final_df = pd.DataFrame([final_vector], columns=column_headers)
     st.table(final_df)
-
     return best_params, final_cr
+
+# -------------------------------------------------------------------
+# Update findWeightedSolution function to use passed weights
+# -------------------------------------------------------------------
+def findWeightedSolution(weights):
+    # Initialise decomposition function
+    decomp = WeightedSum()
+    robustI = decomp(normalisedadvancedRobustProblemparetoObjectivesNSGA, weights).argmin()
+    return robustI
+
+# -------------------------------------------------------------------
+# New function to plot Pareto front with user-defined weights
+# -------------------------------------------------------------------
+def plot_pareto_front_traverse(weight_sensitivity, weight_cr):
+    weights = np.array([[weight_sensitivity, weight_cr]])
+    robustI = findWeightedSolution(weights)
+    
+    plt.rcParams['font.size'] = 20
+    fig = plt.figure(figsize=(20, 10), dpi=300)
+    # Plot Pareto Front
+    plt.scatter(advancedRobustProblemResultNSGAF[:, 0], advancedRobustProblemResultNSGAF[:, 1],
+                facecolors='none', edgecolors="r", label="Pareto Front", marker="o")
+    # Plot Utopia Point (example coordinates)
+    plt.scatter(0.0008762, 0.04218847, label="Utopia Point", color="limegreen", marker="o", s=250)
+    # Plot Optimal Design from robust solution
+    plt.scatter(advancedRobustProblemResultNSGAF[robustI, 0], advancedRobustProblemResultNSGAF[robustI, 1],
+                label="Optimum Design", color="limegreen", marker="x")
+    plt.title("CR vs Sensitivity")
+    plt.ylabel("CR")
+    plt.xlabel(r"$\|\nabla CR\|$")
+    plt.legend()
+    plt.grid()
+    return fig
+
+# -------------------------------------------------------------------
+# The following lines print out the optimal robust design information based on default weights.
+# -------------------------------------------------------------------
+robustWeights = np.array([[1, 1]])  # Default weights: Sensitivity, CR
+robustI = findWeightedSolution(robustWeights)
+np.set_printoptions(suppress=True)
+print(f"""
+The Obj. Fun. Values (Sens, CR) are: {np.around(advancedRobustProblemResultNSGAF[robustI], 7)} 
+and the Design Variables are: {np.around(advancedRobustProblemResultNSGAReversed[robustI], 7)}
+CR = {CorrosionModel.predict(advancedRobustProblemResultNSGAX[robustI].reshape(1, -1), verbose=False)[0]}
+SR = {10**SaturationModel.predict(advancedRobustProblemResultNSGAX[robustI].reshape(1, -1), verbose=False)[0]}
+""")
