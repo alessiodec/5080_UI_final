@@ -62,12 +62,16 @@ normalisedadvancedRobustProblemparetoObjectivesNSGA = np.column_stack((
 
 # -------------------------------------------------------------------
 # Function to reverse scaling and log10 transformation.
-# Expects a 1D array of length 5.
+# This function now properly handles both 1D and 2D inputs.
 # -------------------------------------------------------------------
 def ReverseScalingandLog10(optimisationResult):
-    result_reshaped = optimisationResult.reshape(1, -1)
+    # If the result is 1D and its length equals 5, reshape to (1,5)
+    if optimisationResult.ndim == 1 and optimisationResult.shape[0] == 5:
+        result_reshaped = optimisationResult.reshape(1, -1)
+    else:
+        result_reshaped = optimisationResult  # assume it is already 2D with 5 columns
     real_values = scaler.inverse_transform(result_reshaped)
-    # Reverse the log transformation for columns 2,3,4 (PCO2, v, d)
+    # Reverse the log transformation for columns 2, 3, and 4 (PCO2, v, d)
     real_values[:, 2:] = 10 ** real_values[:, 2:]
     return real_values
 
