@@ -8,7 +8,7 @@ from functions.optimisation_functions import (
 # Reset session state for dataset if needed.
 st.session_state["dataset_choice"] = None
 
-# Initialize session state for navigation if not already set.
+# Initialize session state for page navigation if not already set.
 if "optimisation_page" not in st.session_state:
     st.session_state["optimisation_page"] = "optimisation"
 
@@ -17,7 +17,7 @@ def optimisation_menu():
     st.write("""
     **Optimisation methods:**  
     - **Minimise CR for Given d and PCO₂:** Specify the pipe diameter and CO₂ pressure; a differential evolution algorithm will optimise the remaining design variables.
-    - **Traverse Pareto Front:** Explore trade-offs among Pareto‑optimal designs using a slider to set your preference between robustness (sensitivity) and low corrosion rate (CR).
+    - **Traverse Pareto Front:** Explore trade-offs among Pareto‐optimal designs using a slider to set your preference between robustness (sensitivity) and low corrosion rate (CR).
     """)
     
     if st.button("Minimise CR for Given d and PCO₂"):
@@ -67,22 +67,23 @@ def traverse_pareto_page():
     - **At 1.0:** Weight vector = [0, 1] → Full preference for CR.
     - Intermediate values yield the vector: [1 - slider_value, slider_value].
     
-    After adjusting the slider, click **"Plot Pareto Front"** to update the graph and see the corresponding design details.
+    After adjusting the slider, click **"Plot Pareto Front"** to update the graph and display the corresponding design details.
     """)
-
+    
     slider_value = st.slider("Preference Slider (0.0 to 1.0)", min_value=0.0, max_value=1.0,
                                value=0.5, step=0.01)
+    
+    # Compute weight vector: Left end favors Sensitivity; right favors CR.
     weight_vector = [1 - slider_value, slider_value]
     st.write(f"**Current preference vector:** {weight_vector}")
-
+    
     if st.button("Plot Pareto Front"):
         try:
-            # Plot the Pareto front and retrieve the index of the robust solution.
+            # plot_pareto_front_traverse returns a tuple: (figure, index of selected design)
             fig, robustI = plot_pareto_front_traverse(weight_vector[0], weight_vector[1])
             st.pyplot(fig)
-            # Get the selected design info from the heavy-lifting function.
+            # Retrieve full design details using the provided helper function.
             info = get_selected_design_info(robustI)
-            # Build a nicely formatted Markdown message.
             display_str = f"""
             **Selected Pareto Optimal Design Details:**
             
