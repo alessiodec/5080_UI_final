@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import config
-import EngineDict as Engine
+from . import config
+from . import EngineDict as Engine
 
 def plot_pareto(population, yscale='log', ymax=None, ymin=None):
     pareto_front = Engine.return_pareto_front(population)
