@@ -158,7 +158,7 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
         for i in range(iterations[-1], iterations[-1] + number_of_iterations):
             st.write(f"DEBUG: Starting iteration {i+1}")
             # Evolution step: Generate new population (pass verbose=1 for consistency)
-            new_population = Engine.generate_new_population(population=new_population.copy(), verbose=1)
+            new_population = Engine.generate_new_population(population=new_population.copy())
             st.write(f"DEBUG: Generated new population at iteration {i+1}")
 
             # (Simplification has been disabled to avoid collapsing expressions to constants)
