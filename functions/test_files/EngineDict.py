@@ -1,5 +1,5 @@
-# EngineDict.py
-from. import config
+# functions/test_files/EngineDict.py
+from . import config
 import random
 import numpy as np
 import warnings
@@ -11,7 +11,6 @@ from datetime import datetime
 
 import sympy as sp
 from deap import gp, base, creator, tools
-
 from functools import partial
 from . import simplification as simp
 
@@ -41,7 +40,7 @@ def protectedExp(value):
 def random_constant():
     return round(random.uniform(-1, 1), 4)
 
-# --- Setup Primitive Set based on Dataset ---
+# --- Setup Primitive Set based on config.DATASET ---
 if config.DATASET == 'HEATSINK':
     num_inputs = 2
 elif config.DATASET == 'CORROSION':
@@ -49,7 +48,7 @@ elif config.DATASET == 'CORROSION':
 elif config.DATASET == 'BENCHMARK':
     num_inputs = 3
 else:
-    raise CustomOperationException('config.DATASET must be one of "BENCHMARK", "HEATSINK", or "CORROSION"')
+    raise CustomOperationException('config.DATASET must be "BENCHMARK", "HEATSINK", or "CORROSION"')
 
 pset = gp.PrimitiveSet("MAIN", arity=num_inputs)
 pset.addPrimitive(operator.add, 2)
@@ -66,16 +65,15 @@ if config.DATASET == 'HEATSINK':
     pset.renameArguments(ARG1='G2')
 elif config.DATASET == 'CORROSION':
     pset.renameArguments(ARG0='pH')
-    pset.renameArguments(ARG1='T')
-    pset.renameArguments(ARG2='LogP')
-    pset.renameArguments(ARG3='LogV')
-    pset.renameArguments(ARG4='LogD')
+    pset.renameArguments(ARG1,'T')
+    pset.renameArguments(ARG2,'LogP')
+    pset.renameArguments(ARG3,'LogV')
+    pset.renameArguments(ARG4,'LogD')
 elif config.DATASET == 'BENCHMARK':
     pset.renameArguments(ARG0='X1')
-    pset.renameArguments(ARG1='X2')
-    pset.renameArguments(ARG2='X3')
+    pset.renameArguments(ARG1,'X2')
+    pset.renameArguments(ARG2,'X3')
 
-# --- Create DEAP Types ---
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
 creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
 
@@ -90,7 +88,6 @@ toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr, pset=pset)
 config.TOOLBOX = toolbox
 config.PSET = pset
 
-# --- Evaluation of Individuals ---
 def evaluate_individual(individual):
     func = gp.compile(expr=individual, pset=pset)
     complexity = len(individual)
@@ -104,7 +101,6 @@ def evaluate_individual(individual):
         else:
             raise CustomOperationException("Invalid DATASET in config")
         y_pred = np.array(y_pred).reshape(-1,)
-        # Use 1-R^2 as fitness (or RMSE if configured)
         from sklearn.metrics import r2_score
         fitness = 1 - r2_score(config.y, y_pred)
     except Exception as e:
@@ -117,12 +113,13 @@ def evaluate_population(population):
     total_fitness = 0
     total_complexity = 0
     min_fitness = config.FIT_THRESHOLD
-    for individual in population.values():
+    for individual in population:
         fitness = individual["fitness"]
         complexity = individual["complexity"]
         total_fitness += fitness
         total_complexity += complexity
-        min_fitness = min(min_fitness, fitness)
+        if fitness < min_fitness:
+            min_fitness = fitness
     return total_fitness / len(population), total_complexity / len(population), min_fitness
 
 def display_progress(population, last_printed_index):
@@ -130,7 +127,7 @@ def display_progress(population, last_printed_index):
         return last_printed_index
     if config.VERBOSE and (len(population) % config.DISPLAY_INTERVAL == 0) and (len(population) > 0):
         avg_fit, avg_comp, best_fit = evaluate_population(population)
-        print(f'Len:{len(population)}, Avg Fit:{avg_fit:.4f}, Avg Comp:{avg_comp:.4f}, Best Fit:{best_fit:.6f}')
+        print(f'Len:{len(population)}, Avg Fit:{avg_fit:.4f}, Avg Comp:{avg_comp:.4f}, Best Fit:{best_fit:.4f}')
         return len(population)
 
 def convert_individual_to_key(individual):
@@ -146,14 +143,13 @@ def convert_individual_to_key(individual):
                 format_str += node.name
     return format_str
 
+# Use the simplification functions from the separate module as needed.
 def simplify_population(population):
-    if config.VERBOSE:
-        print('\n-------------- SIMPLIFICATION --------------')
     simplified_population = {}
     index_tracker = 0
-    for individual in population.values():
+    for individual in population:
         index_tracker = display_progress(population=simplified_population, last_printed_index=index_tracker)
-        if individual['is_simplified']:
+        if individual.get('is_simplified', False):
             key = convert_individual_to_key(individual['individual'])
             if key not in simplified_population or individual['fitness'] < simplified_population[key]['fitness']:
                 simplified_population[key] = individual
@@ -188,17 +184,20 @@ def initialize_population():
     while len(init_population) < config.POPULATION_SIZE:
         individual = toolbox.individual()
         fitness, complexity = evaluate_individual(individual=individual)
-        if complexity > config.COMPLEXITY_MAX_THRESHOLD or complexity < config.COMPLEXITY_MIN_THRESHOLD or fitness > config.FIT_THRESHOLD:
-            continue
-        key = convert_individual_to_key(individual)
-        if key not in init_population or fitness < init_population[key]['fitness']:
-            init_population[key] = {
-                'complexity': complexity,
-                'fitness': fitness,
-                'individual': individual,
-                'is_simplified': False,
-            }
-            index_tracker = display_progress(population=init_population, last_printed_index=index_tracker)
+        # Store individual as a dict
+        if config.USE_SIMPLIFICATION:
+            # Optionally simplify here
+            pass
+        if fitness < config.FIT_THRESHOLD and complexity < config.COMPLEXITY_MAX_THRESHOLD:
+            key = convert_individual_to_key(individual)
+            if key not in init_population or fitness < init_population[key]['fitness']:
+                init_population[key] = {
+                    'complexity': complexity,
+                    'fitness': fitness,
+                    'individual': individual,
+                    'is_simplified': False,
+                }
+                index_tracker = display_progress(population=init_population, last_printed_index=index_tracker)
     if config.USE_SIMPLIFICATION:
          init_population = simplify_population(init_population)
     return init_population
@@ -239,20 +238,16 @@ def generate_new_generation_NSGA_2(n, population, tournament_selection=False):
         if len(next_generation) + len(pareto_fronts[pareto_index]) <= n:
             next_generation.extend(pareto_fronts[pareto_index])
             pareto_index += 1
-        elif tournament_selection:
-            pareto_fronts[pareto_index].sort(key=lambda x: x['fitness'])
-            for i in range(n - len(next_generation)):
-                next_generation.append(pareto_fronts[pareto_index][i])
         else:
             selected_ind = random.choice(pareto_fronts[pareto_index])
-            pareto_fronts[pareto_index].remove(selected_ind)
+            pareto_fronts[pareto_index].remove(selected_ind)                           
             next_generation.append(selected_ind)
     return next_generation
 
-def tournament_selection(parent_generation: list, n_selected=2):
+def tournament_selection(parent_generation, n_selected=2):
     selected = []
     tournament = random.sample(parent_generation, config.TORNEMENT_SIZE)
-    if config.TORN_SELECTION_METHOD == 'pareto':
+    if config.SELECTION_METHOD == 'pareto':
         selected = generate_new_generation_NSGA_2(n_selected, tournament, tournament_selection=True)
     else:
         tournament.sort(key=lambda x: x['fitness'])
@@ -278,36 +273,35 @@ def mate_and_mutate(parent1, parent2, cxpb=0.95, mutpb=0.5):
     custom_parent_arr = [parent1, parent2]
     for individual in [offspring1, offspring2]:
         fitness, complexity = evaluate_individual(individual)
-        offspring = {
+        custom_parent_arr.append({
             'complexity': complexity,
             'fitness': fitness,
             'individual': individual,
             'is_simplified': False
-        }
-        custom_parent_arr.append(offspring)
+        })
     return custom_parent_arr
 
-def generate_new_population(population: dict):
+def generate_new_population(population, verbose=1):
     new_gen_parents = generate_new_generation_NSGA_2(config.POPULATION_RETENTION_SIZE, population)
     new_population = {}
-    index_tracker = 0
+    new_population_strings = []
     while len(new_population) < config.POPULATION_SIZE:
-        parent1, parent2 = tournament_selection(new_gen_parents)
-        mate_mutation_results = mate_and_mutate(parent1, parent2)
-        if config.MATE_MUTATE_SELECTION_METHOD == 'pareto':
+        parents = tournament_selection(new_gen_parents)
+        mate_mutation_results = mate_and_mutate(parent1=parents[0], parent2=parents[1])
+        if config.SELECTION_METHOD == 'pareto':
             selected_mate_mutation_results = return_pareto_front({i: ind for i, ind in enumerate(mate_mutation_results)})
-        elif config.MATE_MUTATE_SELECTION_METHOD == 'fitness':
+        elif config.SELECTION_METHOD == 'fitness':
             mate_mutation_results.sort(key=lambda x: x['fitness'])
             selected_mate_mutation_results = mate_mutation_results[:2]
         else:
             selected_mate_mutation_results = mate_mutation_results
         for individual in selected_mate_mutation_results:
-            if individual['complexity'] > config.COMPLEXITY_MAX_THRESHOLD or individual['complexity'] < config.COMPLEXITY_MIN_THRESHOLD or individual['fitness'] > config.FIT_THRESHOLD:
-                continue
-            key = convert_individual_to_key(individual['individual'])
-            if key not in new_population or individual['fitness'] < new_population[key]['fitness']:
-                new_population[key] = individual
-                index_tracker = display_progress(population=new_population, last_printed_index=index_tracker)
+            if individual['fitness'] < config.FIT_THRESHOLD and individual['complexity'] < config.COMPLEXITY_MAX_THRESHOLD and (str(individual['individual']) not in new_population_strings):
+                new_population[convert_individual_to_key(individual['individual'])] = individual
+                new_population_strings.append(str(individual['individual']))
+                if verbose and len(new_population) % 100 == 1:
+                    avg_fit, avg_comp, best_fit = evaluate_population(new_population)
+                    print(f'Len:{len(new_population)}, Avg Fit:{avg_fit:.4f}, Avg Comp:{avg_comp:.4f}, Best Fit:{best_fit:.4f}')
     return new_population
 
 if __name__ == "__main__":
