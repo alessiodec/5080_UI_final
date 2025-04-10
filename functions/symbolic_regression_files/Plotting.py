@@ -1,5 +1,3 @@
-# functions/symbolic_regression_files/Plotting.py
-
 import numpy as np
 import matplotlib.pyplot as plt
 import streamlit as st
@@ -20,7 +18,7 @@ def plot_pareto(population, yscale='log', ymax=None, ymin=None):
     pareto_plot_data = np.array(pareto_plot_data)
     
     population_plot_data = []
-    for individual in population.values():
+    for individual in population:
         population_plot_data.append((individual['fitness'], individual['complexity']))
     population_plot_data = np.array(population_plot_data)
     
@@ -35,13 +33,10 @@ def plot_pareto(population, yscale='log', ymax=None, ymin=None):
     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
     ax.set_ylabel("Fitness $1-R^2$")
     ax.set_xlabel("Complexity")
-    
     if yscale == 'log':
         ax.set_yscale("log")
-    
     if (ymax is not None and ymin is not None):
         ax.set_ylim(ymin, ymax)
-    
     return fig
 
 def plot_next_gen_parents(population, yscale='log', ymax=None, ymin=None):
@@ -65,7 +60,7 @@ def plot_next_gen_parents(population, yscale='log', ymax=None, ymin=None):
     pareto_plot_data = np.array(pareto_plot_data)
     
     population_plot_data = []
-    for individual in population.values():
+    for individual in population:
         population_plot_data.append((individual['fitness'], individual['complexity']))
     population_plot_data = np.array(population_plot_data)
     
@@ -81,11 +76,8 @@ def plot_next_gen_parents(population, yscale='log', ymax=None, ymin=None):
     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
     ax.set_ylabel("Fitness $1-R^2$")
     ax.set_xlabel("Complexity")
-    
     if yscale == 'log':
         ax.set_yscale("log")
-    
     if (ymax is not None and ymin is not None):
         ax.set_ylim(ymin, ymax)
-    
     return fig
