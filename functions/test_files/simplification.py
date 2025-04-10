@@ -1,6 +1,6 @@
-from . import config
+# functions/test_files/simplification.py
+import config
 from . import EngineDict as Engine
-
 import multiprocessing
 import signal
 import sympy as sp
@@ -8,11 +8,12 @@ from sympy import Add, Mul, Pow, Number, Symbol
 from sympy import log as sympy_log, exp as sympy_exp
 from deap import base, creator, gp, tools, algorithms
 
-# --- Mapping between DEAP names and symbols ---
+# 1. Map to convert between strings.
 symbol_map = {
     "protectedDiv": "/",
     "add": "+",
     "sub": "-",
+    "neg": "*-1",
     "protectedExp": "exp",
     "protectedLog": "log",
     "mul": "*",
@@ -35,12 +36,14 @@ def convert_expression_to_sympy(individual):
                 stack.append(str(node.value))
             else:
                 try:
-                    number = float(node.name)
+                    float(node.name)
                     stack.append(node.name)
                 except ValueError:
                     stack.append(symbol_map[node.name])
         elif isinstance(node, gp.Primitive):
-            if node.name == "protectedExp":
+            if node.name == "neg":
+                stack.append(f'-1*({stack.pop()})')
+            elif node.name == "protectedExp":
                 stack.append(f'exp({stack.pop()})')
             elif node.name == "protectedLog":
                 stack.append(f'log({stack.pop()})')
@@ -82,37 +85,31 @@ def simplify_power_bases(expr):
 def simplify_sympy_expression(expr):
     has_updated = False
     lowest_complexity = calc_complexity_sympy(expr)
-
     new_complexity = calc_complexity_sympy(simplify_power_bases(expr))
     if new_complexity < lowest_complexity:
         lowest_complexity = new_complexity
         expr = simplify_power_bases(expr)
         has_updated = True
-
     new_complexity = calc_complexity_sympy(expr.factor())
     if new_complexity < lowest_complexity:
         lowest_complexity = new_complexity
         expr = expr.factor()
         has_updated = True
-
     new_complexity = calc_complexity_sympy(sp.powsimp(expr, force=True))
     if new_complexity < lowest_complexity:
         lowest_complexity = new_complexity
         expr = sp.powsimp(expr, force=True)
         has_updated = True
-
     new_complexity = calc_complexity_sympy(sp.powdenest(expr, force=True))
     if new_complexity < lowest_complexity:
         lowest_complexity = new_complexity
         expr = sp.powdenest(expr, force=True)
         has_updated = True
-
     new_complexity = calc_complexity_sympy(sp.logcombine(expr, force=True))
     if new_complexity < lowest_complexity:
         lowest_complexity = new_complexity
         expr = sp.logcombine(expr, force=True)
         has_updated = True
-
     if has_updated:
         expr = simplify_sympy_expression(expr)
     return expr
@@ -130,9 +127,6 @@ def simplify_individual(individual):
             deap_simplified_version = deap_simplified_version.replace('x0', 'X1').replace('x1', 'X2').replace('x2', 'X3')
         new_individual = gp.PrimitiveTree.from_string(deap_simplified_version, config.PSET)
         return new_individual
-    except TimeoutError as e:
-        print(e)
-        return None
     except Exception as e:
         if config.DISPLAY_ERROR_MESSAGES:
             print(e)
@@ -142,7 +136,7 @@ def sympy_to_deap(expr):
     if expr.is_Symbol:
         return str(expr)
     if expr.is_Number:
-        return str(round(expr.evalf(), 4)) if expr.is_Float else str(round(expr, 4))
+        return str(round(expr.evalf(), 4)) if expr.is_Float else str(expr)
     if expr.is_Function:
         func = expr.func
         args = expr.args
@@ -201,4 +195,4 @@ def sympy_to_deap(expr):
     raise ValueError(f"Unsupported or unexpected expression: {expr}")
 
 if __name__ == "__main__":
-    print('This is a module for simplification and should not be run as main.')
+    print('This module is for simplification and should not be run as main.')
