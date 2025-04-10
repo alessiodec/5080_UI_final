@@ -6,21 +6,14 @@ from . import EngineDict as Engine
 
 def plot_pareto(population, yscale='log', ymax=None, ymin=None):
     """
-    Plots the Pareto front and entire population.
+    Plots the Pareto front and the entire population.
     
     Returns:
         A matplotlib figure object that can be rendered via st.pyplot().
     """
     pareto_front = Engine.return_pareto_front(population)
-    pareto_plot_data = []
-    for individual in pareto_front:
-        pareto_plot_data.append((individual['fitness'], individual['complexity']))
-    pareto_plot_data = np.array(pareto_plot_data)
-    
-    population_plot_data = []
-    for individual in population:
-        population_plot_data.append((individual['fitness'], individual['complexity']))
-    population_plot_data = np.array(population_plot_data)
+    pareto_plot_data = np.array([(ind['fitness'], ind['complexity']) for ind in pareto_front])
+    population_plot_data = np.array([(ind['fitness'], ind['complexity']) for ind in population])
     
     utopia_point = [min(population_plot_data[:, 1]), min(population_plot_data[:, 0])]
     if config.VERBOSE:
@@ -41,7 +34,7 @@ def plot_pareto(population, yscale='log', ymax=None, ymin=None):
 
 def plot_next_gen_parents(population, yscale='log', ymax=None, ymin=None):
     """
-    Plots the population, parent candidate points, and Pareto front for the next generation.
+    Plots the population, candidate parent points, and the Pareto front for the next generation.
     
     Returns:
         A matplotlib figure object that can be rendered via st.pyplot().
@@ -49,20 +42,9 @@ def plot_next_gen_parents(population, yscale='log', ymax=None, ymin=None):
     pareto_front = Engine.return_pareto_front(population)
     top_n = Engine.generate_new_generation_NSGA_2(config.POPULATION_RETENTION_SIZE, population)
     
-    top_n_data = []
-    for individual in top_n:
-        top_n_data.append((individual['fitness'], individual['complexity']))
-    top_n_data = np.array(top_n_data)
-    
-    pareto_plot_data = []
-    for individual in pareto_front:
-        pareto_plot_data.append((individual['fitness'], individual['complexity']))
-    pareto_plot_data = np.array(pareto_plot_data)
-    
-    population_plot_data = []
-    for individual in population:
-        population_plot_data.append((individual['fitness'], individual['complexity']))
-    population_plot_data = np.array(population_plot_data)
+    top_n_data = np.array([(ind['fitness'], ind['complexity']) for ind in top_n])
+    pareto_plot_data = np.array([(ind['fitness'], ind['complexity']) for ind in pareto_front])
+    population_plot_data = np.array([(ind['fitness'], ind['complexity']) for ind in population])
     
     utopia_point = [min(population_plot_data[:, 1]), min(population_plot_data[:, 0])]
     if config.VERBOSE:
