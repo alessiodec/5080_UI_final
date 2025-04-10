@@ -1,25 +1,24 @@
 """
-Functions for implementing the SR - 14.2.25 - HEATSINK/CORROSION
-Now extended to work for both datasets. In this “beta” version the population is maintained as a list rather than a dictionary.
-This file contains functions for evaluating individuals, initializing the population, performing pareto selection, tournament selection,
-mating/mutation, and generating new populations.
+Functions for implementing the SR - 14.2.25 - for HEATSINK/CORROSION/BENCHMARK datasets.
+This beta version has been adjusted to allow evolution for both datasets.
+Population representations are maintained as a list, and the evaluation function
+has been modified to relax terminal checks for CORROSION so that individuals using
+at least one input are accepted.
 """
 
 from . import config
 import random
 import numpy as np
-import warnings
 import math
 import operator
 from . import Simplification as simp
 import pandas as pd
 
-from deap import gp, base, creator, tools, algorithms
+from deap import gp, base, creator, tools
 from functools import partial
 from datetime import datetime
 
 import sympy as sp
-from sympy import Add, Mul, Pow, Number, Symbol
 from sympy import log as sympy_log, exp as sympy_exp
 
 import streamlit as st  # For Streamlit display
@@ -29,7 +28,6 @@ class CustomOperationException(Exception):
     pass
 
 # ---------- Protected Operations ----------
-
 def protectedDiv(left, right):
     try:
         return left / right
@@ -109,18 +107,17 @@ config.TOOLBOX = toolbox
 config.PSET = pset
 
 # ---------- Evaluation Functions ----------
-
 def evaluate_individual(individual):
     func = gp.compile(expr=individual, pset=pset)
     complexity = len(individual)
-    # --- Terminal checks (to discourage constant individuals) ---
+    # For HEATSINK, require both inputs.
     if config.DATASET == 'HEATSINK':
         if not (('G1' in str(individual)) and ('G2' in str(individual))):
             return config.FIT_THRESHOLD + 1, complexity
     elif config.DATASET == 'CORROSION':
+        # For CORROSION, require that at least one input terminal is present.
         individual_str = str(individual)
-        required_terms = ["pH", "T", "LogP", "LogV", "LogD"]
-        if not all(term in individual_str for term in required_terms):
+        if not any(term in individual_str for term in ["pH", "T", "LogP", "LogV", "LogD"]):
             return config.FIT_THRESHOLD + 1, complexity
     try:
         if config.DATASET == 'HEATSINK':
@@ -134,7 +131,6 @@ def evaluate_individual(individual):
         y_pred = np.array(y_pred).reshape(-1,)
         if config.USE_RMSE:
             fitness = np.sqrt(np.mean((config.y - y_pred) ** 2))
-            # Alternatively, one can use a proper root_mean_squared_error function.
         else:
             fitness = 1 - r2_score(config.y, y_pred)
     except Exception as e:
@@ -144,7 +140,6 @@ def evaluate_individual(individual):
     return fitness, complexity
 
 def evaluate_population(population):
-    # population is expected to be a list of individuals (each is a dict)
     total_fitness = 0
     total_complexity = 0
     best_fitness = population[0]['fitness']
@@ -179,7 +174,6 @@ def convert_individual_to_key(individual):
 
 # ---------- Population Simplification ----------
 def simplify_population(population_dict):
-    # population_dict is a dictionary; we will simplify each and then return the dictionary
     if config.VERBOSE:
         st.write('\n-------------- SIMPLIFICATION --------------')
     simplified_population = {}
@@ -207,7 +201,6 @@ def simplify_population(population_dict):
     return simplified_population
 
 def initialize_population():
-    # Build population in a dictionary to enforce uniqueness, then return as a list.
     init_population_dict = {}
     while len(init_population_dict) < config.POPULATION_SIZE:
         individual = toolbox.individual()
@@ -228,7 +221,6 @@ def initialize_population():
 
 # ---------- Pareto and Dominance Functions ----------
 def return_pareto_front(population):
-    # population is a list
     results = [(ind['fitness'], ind['complexity']) for ind in population]
     results = np.array(results)
     is_pareto = np.ones(results.shape[0], dtype=bool)
@@ -245,7 +237,6 @@ def dominates(ind1, ind2):
     return (fitness_1 <= fitness_2 and complexity_1 <= complexity_2) and (fitness_1 < fitness_2 or complexity_1 < complexity_2)
 
 def generate_new_generation_NSGA_2(n, population, tournament_selection=False):
-    # population is a list
     dominated_counts = [0] * len(population)
     for i, ind1 in enumerate(population):
         for j, ind2 in enumerate(population[i:]):
@@ -312,7 +303,6 @@ def mate_and_mutate(parent1, parent2, cxpb=0.95, mutpb=0.5):
     return results
 
 def generate_new_population(population):
-    # 'population' is a list
     new_gen_parents = generate_new_generation_NSGA_2(config.POPULATION_RETENTION_SIZE, population)
     new_population_dict = {}
     max_attempts = config.POPULATION_SIZE * 10  # Prevent infinite loop
@@ -379,7 +369,6 @@ def read_population_from_file(filename):
     return list(population.values())
 
 def unstandardise_and_simplify_population(population):
-    # population is a list
     injected_population = []
     for individual in population:
         new_expression_str = f"add(mul({individual['individual']}, {config.std_y}), {config.mean_y})"
@@ -396,7 +385,6 @@ def unstandardise_and_simplify_population(population):
     return list(simplified_injected_pop.values()) if isinstance(simplified_injected_pop, dict) else list(simplified_injected_pop)
 
 def extend_population_with_saved_expressions(filenames, population):
-    # population is a list; we build a dict and merge
     pop_dict = {convert_individual_to_key(ind['individual']): ind for ind in population}
     for filename in filenames:
         saved = read_population_from_file(filename)
