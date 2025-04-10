@@ -1,5 +1,5 @@
 # functions/test_files/simplification.py
-import config
+from . import config
 from . import EngineDict as Engine
 import multiprocessing
 import signal
