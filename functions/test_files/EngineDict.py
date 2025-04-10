@@ -65,14 +65,14 @@ if config.DATASET == 'HEATSINK':
     pset.renameArguments(ARG1='G2')
 elif config.DATASET == 'CORROSION':
     pset.renameArguments(ARG0='pH')
-    pset.renameArguments(ARG1,'T')
-    pset.renameArguments(ARG2,'LogP')
-    pset.renameArguments(ARG3,'LogV')
-    pset.renameArguments(ARG4,'LogD')
+    pset.renameArguments(ARG1='T')
+    pset.renameArguments(ARG2='LogP')
+    pset.renameArguments(ARG3='LogV')
+    pset.renameArguments(ARG4='LogD')
 elif config.DATASET == 'BENCHMARK':
     pset.renameArguments(ARG0='X1')
-    pset.renameArguments(ARG1,'X2')
-    pset.renameArguments(ARG2,'X3')
+    pset.renameArguments(ARG1='X2')
+    pset.renameArguments(ARG2='X3')
 
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
 creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
