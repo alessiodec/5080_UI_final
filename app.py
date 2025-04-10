@@ -29,7 +29,7 @@ elif page == "Symbolic Regression (BETA)":
     symbolic_regression.run()
 elif page == "Test":
     import test
-    test.run()
+    test.run_ui()
 else:
     # HOME PAGE TEXT
     st.title("Machine Learning-Enabled Optimisation of Industrial Flow Systems - UI Tool")
