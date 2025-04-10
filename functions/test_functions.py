@@ -11,7 +11,7 @@ from deap import gp
 # Import modules from the test_files folder.
 from functions.test_files import config
 from functions.test_files import EngineDict as Engine
-from functions.test_files import plotting    # Not actively used in the loop below, but included if needed.
+from functions.test_files import plotting    # Not actively used below, but included if needed.
 from functions.test_files import simplification as simp
 
 def run_evolution_experiment(dataset_choice, output_var, population_size, population_retention_size, number_of_iterations, st_container):
@@ -22,12 +22,20 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
     sets evolution configuration parameters, and runs the evolutionary loop.
     Real-time metrics are plotted into the provided st_container.
     Finally, the best simplified equation is rendered using Streamlit.
+    
+    Debug outputs are provided at each major step.
     """
+    # Create a debug log container to output debug information.
+    debug_log = st_container.empty()
+    debug_log.text("DEBUG: Starting evolution experiment...")
+
     # --- Set configuration variable ---
     config.DATASET = dataset_choice
+    debug_log.text(f"DEBUG: DATASET set to {dataset_choice}")
 
     # --- Dataset Selection and Preprocessing ---
     if dataset_choice == 'CORROSION':
+        debug_log.text("DEBUG: Loading CORROSION dataset...")
         # Download and load the corrosion dataset
         csv_url = "https://drive.google.com/uc?export=download&id=10GtBpEkWIp4J-miPzQrLIH6AWrMrLH-o"
         response = requests.get(csv_url)
@@ -50,7 +58,6 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
             "LogD":  [-2, 0],
         }
         
-        # Sample a subset
         np.random.seed(42)
         sample_size = 2000
         sample_indices = np.random.choice(df.index, size=sample_size, replace=False)
@@ -66,7 +73,7 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
             for i, col in enumerate(["pH", "Tc", "LogP", "LogV", "LogD"])
         ]).T
         
-        # Standardise target
+        # Standardise target variable
         mean_y = np.mean(y)
         std_y = np.std(y)
         config.mean_y = mean_y
@@ -75,8 +82,10 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
         
         config.X = transformed_X
         config.y = standardised_y
-
+        debug_log.text("DEBUG: CORROSION dataset loaded and preprocessed.")
+        
     elif dataset_choice == 'HEATSINK':
+        debug_log.text("DEBUG: Loading HEATSINK dataset...")
         # Load heatsink dataset from file
         heatsink_file = "functions/test_files/data/Latin_Hypercube_Heatsink_1000_samples.txt"
         with open(heatsink_file, "r") as f:
@@ -97,6 +106,7 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
         
         config.X = X
         config.y = standardised_y
+        debug_log.text("DEBUG: HEATSINK dataset loaded and preprocessed.")
     else:
         raise ValueError("Invalid dataset_choice provided.")
 
@@ -112,46 +122,47 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
     config.FITNESS_REDUCTION_THRESHOLD = 5
     config.FITNESS_REDUCTION_FACTOR = 0.8
     config.FIT_THRESHOLD = 10
+    debug_log.text("DEBUG: Configuration parameters set.")
 
     # --- Initialize Population ---
+    debug_log.text("DEBUG: Initializing population...")
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", RuntimeWarning)
         init_population = Engine.initialize_population()
         Engine.evaluate_population(init_population)
-
     new_population = init_population.copy()
     avg_fitness, avg_complexity, optimal_fitness = Engine.evaluate_population(new_population)
     iterations = [0]
     avg_fitness_arr = [avg_fitness]
     avg_complexity_arr = [avg_complexity]
     best_fitness_arr = [optimal_fitness]
+    debug_log.text(f"DEBUG: Initial population created. Avg fitness = {avg_fitness:.4f}")
 
     start_time = time.time()
     fig, ax = plt.subplots()
 
+    # --- Evolution Loop ---
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", RuntimeWarning)
         for i in range(number_of_iterations):
-            # Generate new population
+            debug_log.text(f"DEBUG: Iteration {i+1}/{number_of_iterations} starting.")
             new_population = Engine.generate_new_population(population=new_population.copy())
-            
-            # Simplification step at given intervals
+
             if config.USE_SIMPLIFICATION and i % config.SIMPLIFICATION_INDEX_INTERVAL == 0:
                 new_population = Engine.simplify_population(new_population)
-            
-            # Evaluate population
+                debug_log.text(f"DEBUG: Population simplified at iteration {i+1}.")
+
             avg_fitness, avg_complexity, optimal_fitness = Engine.evaluate_population(new_population)
             avg_fitness_arr.append(avg_fitness)
             avg_complexity_arr.append(avg_complexity)
             best_fitness_arr.append(optimal_fitness)
             iterations.append(iterations[-1] + 1)
 
-            # Timing (optional)
             elapsed = time.time() - start_time
             start_time = time.time()
 
-            # --- Update Plot in Real Time ---
-            ax.cla()  # Clear current axes
+            # Update the plot
+            ax.cla()
             ax.plot(iterations, avg_fitness_arr, label="Average Fitness")
             ax.plot(iterations, avg_complexity_arr, label="Complexity")
             ax.plot(iterations, best_fitness_arr, label="Lowest Fitness")
@@ -160,22 +171,26 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
             ax.set_xlabel("Iteration")
             ax.set_yscale("log")
             ax.set_title(f"Population Metrics {dataset_choice} // {output_var}")
-            
-            # Update the Streamlit container
+
             st_container.pyplot(fig)
+
+            debug_log.text(f"DEBUG: Iteration {i+1} complete. Avg fitness = {avg_fitness:.4f}, Best fitness = {optimal_fitness:.6f}, elapsed time = {elapsed:.2f}s")
             plt.pause(0.1)
             time.sleep(0.1)
 
-    # --- Select the Best Individual from the Pareto Front ---
+    # --- Select the Best Individual ---
+    debug_log.text("DEBUG: Selecting best individual from Pareto front...")
     pareto_front = list(Engine.return_pareto_front(new_population))
     pareto_front.sort(key=lambda x: x['fitness'])
     best_indiv = pareto_front[0]
 
     # --- Simplify and Construct the Final Equation ---
+    debug_log.text("DEBUG: Simplifying best individual to construct final equation...")
     best_sympy_expr = simp.convert_expression_to_sympy(best_indiv['individual'])
     equation = sp.Eq(sp.Symbol(output_var), best_sympy_expr)
 
-    # Clear the placeholder and display the final equation.
+    # Clear the placeholder, then display the final equation.
     st_container.empty()
+    debug_log.empty()
     st_container.write("### Final Simplified Equation:")
     st_container.latex(sp.pretty(equation, use_unicode=True))
