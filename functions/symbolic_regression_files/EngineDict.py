@@ -120,19 +120,19 @@ config.PSET = pset
 def evaluate_individual(individual):
     func = gp.compile(expr=individual, pset=pset)
     complexity = len(individual)
-    '''
-    # Check for required terminals in HEATSINK
-    if config.DATASET == 'HEATSINK' and not (('G1' in str(individual)) and ('G2' in str(individual))):
-        return config.FIT_THRESHOLD + 1, complexity
-
-    # Add a similar check for CORROSION
-    if config.DATASET == 'CORROSION':
+    
+    # --- Add terminal check similar to normal SR ---
+    if config.DATASET == 'HEATSINK':
+        # For heatsink, ensure both inputs are used
+        if not (('G1' in str(individual)) and ('G2' in str(individual))):
+            return config.FIT_THRESHOLD + 1, complexity
+    elif config.DATASET == 'CORROSION':
+        # For corrosion, check for all required inputs:
         individual_str = str(individual)
         required_terms = ["pH", "T", "LogP", "LogV", "LogD"]
         if not all(term in individual_str for term in required_terms):
             return config.FIT_THRESHOLD + 1, complexity
 
-    '''
     try:
         if config.DATASET == 'HEATSINK':
             y_pred = [func(x[0], x[1]) for x in config.X]
@@ -156,6 +156,7 @@ def evaluate_individual(individual):
         fitness = config.FIT_THRESHOLD + 1
     
     return fitness, complexity
+
 
 
 def evaluate_population(population):
@@ -384,7 +385,7 @@ def mate_and_mutate(parent1, parent2, cxpb=0.95, mutpb=0.5):
     return custom_parent_arr
 
 def generate_new_population(population: dict):
-    new_gen_parents = _new_generation_NSGA_2(config.POPULATION_RETENTION_SIZE, population)
+    new_gen_parents = generate_new_generation_NSGA_2(config.POPULATION_RETENTION_SIZE, population)
     new_population = {}
     index_tracker = 0
     
