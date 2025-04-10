@@ -18,7 +18,6 @@ from functions.symbolic_regression_files import EngineDict as Engine
 from functions.symbolic_regression_files import Plotting as Plot
 from functions.symbolic_regression_files import Simplification as simp
 
-
 def run_evolution_experiment(dataset_choice, output_var, population_size, population_retention_size, number_of_iterations=50):
     st.write("DEBUG: Starting run_evolution_experiment")
     st.write(f"DEBUG: Dataset choice: {dataset_choice}, Output variable: {output_var}")
@@ -107,17 +106,17 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
 
     # --- Set Evolution Parameters ---
     st.write("DEBUG: Setting evolution parameters")
-    config.FIT_THRESHOLD = 1000
+    config.FIT_THRESHOLD = 10   # Changed from 1000 to 10 (as in normal SR)
     config.POPULATION_SIZE = population_size
     config.POPULATION_RETENTION_SIZE = population_retention_size
     config.DISPLAY_ERROR_MESSAGES = False
     config.VERBOSE = True
 
     # Additional configuration for evolution
-    config.SIMPLIFICATION_INDEX_INTERVAL = 100  # Increase interval to reduce frequency
+    # Disable simplification during evolution (or set the interval beyond the iteration count)
+    config.SIMPLIFICATION_INDEX_INTERVAL = number_of_iterations + 1  
     config.EARLY_STOPPING_THRESHOLD = 20
     config.FITNESS_REDUCTION_THRESHOLD = 5
-    # Disable simplification during initialization to speed things up:
     config.USE_SIMPLIFICATION = False  
     config.FITNESS_REDUCTION_FACTOR = 0.8
     st.write("DEBUG: Evolution parameters set")
@@ -131,7 +130,7 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
     st.write("DEBUG: Population initialization complete")
 
     # Optionally, you can re-enable simplification after initialization if needed:
-    config.USE_SIMPLIFICATION = True
+    # config.USE_SIMPLIFICATION = True
 
     new_population = init_population.copy()
     avg_fitness, avg_complexity, optimal_fitness = Engine.evaluate_population(new_population)
@@ -158,18 +157,11 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
         warnings.simplefilter("ignore", RuntimeWarning)
         for i in range(iterations[-1], iterations[-1] + number_of_iterations):
             st.write(f"DEBUG: Starting iteration {i+1}")
-            # Evolution step: Generate new population
-            new_population = Engine.generate_new_population(population=new_population.copy())
+            # Evolution step: Generate new population (pass verbose=1 for consistency)
+            new_population = Engine.generate_new_population(population=new_population.copy(), verbose=1)
             st.write(f"DEBUG: Generated new population at iteration {i+1}")
 
-            # Apply simplification at intervals (less frequently now)
-            if config.USE_SIMPLIFICATION and i % config.SIMPLIFICATION_INDEX_INTERVAL == 0:
-                st.write(f"DEBUG: Applying simplification at iteration {i+1}")
-                _, old_avg_complexity, _ = Engine.evaluate_population(new_population)
-                new_population = Engine.simplify_population(new_population)
-                _, avg_complexity, _ = Engine.evaluate_population(new_population)
-                st.write(f"DEBUG: Simplification complete at iteration {i+1}")
-
+            # (Simplification has been disabled to avoid collapsing expressions to constants)
             # Evaluate population and record metrics
             avg_fitness, avg_complexity, optimal_fitness = Engine.evaluate_population(new_population)
             avg_fitness_arr.append(avg_fitness)
@@ -203,9 +195,9 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
 
             # --- Update the Real-Time Plot ---
             ax.cla()
-            ax.plot(iterations, avg_fitness_arr, 'bo-', label="Average Population Fitness")  # added markers and line style
-            ax.plot(iterations, avg_complexity_arr, 'ro-', label="Complexity")              # added markers and line style
-            ax.plot(iterations, best_fitness_arr, 'go-', label="Lowest Population Fitness") # added markers and line style
+            ax.plot(iterations, avg_fitness_arr, 'bo-', label="Average Population Fitness")
+            ax.plot(iterations, avg_complexity_arr, 'ro-', label="Complexity")
+            ax.plot(iterations, best_fitness_arr, 'go-', label="Lowest Population Fitness")
             ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
             ax.set_ylabel("Fitness - 1-$R^2$")
             ax.set_xlabel("Iteration")
@@ -214,7 +206,7 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
 
             plot_placeholder.pyplot(fig)
             evolution_progress.progress(int((i + 1) / number_of_iterations * 100))
-            time.sleep(0.5)  # Added delay so that plot updates are visible
+            time.sleep(0.5)  # Allow time for the plot to visibly update
 
     st.write("DEBUG: Evolution iterations complete")
 
@@ -232,4 +224,3 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
     equation = sp.Eq(sp.Symbol(output_var), best_sympy_expr)
     st.latex(sp.latex(equation))
     st.write("DEBUG: Evolution experiment complete")
-
