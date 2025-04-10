@@ -1,6 +1,6 @@
 # Simplification.py
-import config
-import EngineDict as Engine
+from . import config
+from . import EngineDict as Engine
 import sympy as sp
 from sympy import log as sympy_log, exp as sympy_exp
 from deap import gp
