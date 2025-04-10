@@ -1,5 +1,5 @@
 # EngineDict.py
-import config
+from. import config
 import random
 import numpy as np
 import warnings
@@ -13,7 +13,7 @@ import sympy as sp
 from deap import gp, base, creator, tools
 
 from functools import partial
-from functions.test_files import simplification as simp
+from . import simplification as simp
 
 # --- Custom Exception ---
 class CustomOperationException(Exception):
