@@ -1,5 +1,5 @@
-import config
-import EngineDict as Engine
+from . import config
+from . import EngineDict as Engine
 
 import multiprocessing
 import signal
