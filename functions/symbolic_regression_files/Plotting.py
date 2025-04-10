@@ -4,21 +4,15 @@ import streamlit as st
 from . import config
 from . import EngineDict as Engine
 
-def plot_pareto(population, yscale='log', ymax=None, ymin=None):
-    """
-    Plots the Pareto front and the entire population.
-    
-    Returns:
-        A matplotlib figure object that can be rendered via st.pyplot().
-    """
-    pareto_front = Engine.return_pareto_front(population)
+def plot_pareto(population_dict, yscale='log', ymax=None, ymin=None):
+    # population_dict is a dictionary
+    pareto_front = Engine.return_pareto_front(population_dict)
     pareto_plot_data = np.array([(ind['fitness'], ind['complexity']) for ind in pareto_front])
-    population_plot_data = np.array([(ind['fitness'], ind['complexity']) for ind in population])
-    
+    # For population, iterate over dict values
+    population_plot_data = np.array([(ind['fitness'], ind['complexity']) for ind in population_dict.values()])
     utopia_point = [min(population_plot_data[:, 1]), min(population_plot_data[:, 0])]
     if config.VERBOSE:
         st.write("Utopia point:", utopia_point)
-    
     fig, ax = plt.subplots()
     ax.scatter(population_plot_data[:, 1], population_plot_data[:, 0], s=15, label="Population")
     ax.scatter(pareto_plot_data[:, 1], pareto_plot_data[:, 0], s=15, label="Pareto Front")
@@ -28,28 +22,19 @@ def plot_pareto(population, yscale='log', ymax=None, ymin=None):
     ax.set_xlabel("Complexity")
     if yscale == 'log':
         ax.set_yscale("log")
-    if (ymax is not None and ymin is not None):
+    if ymax is not None and ymin is not None:
         ax.set_ylim(ymin, ymax)
     return fig
 
-def plot_next_gen_parents(population, yscale='log', ymax=None, ymin=None):
-    """
-    Plots the population, candidate parent points, and the Pareto front for the next generation.
-    
-    Returns:
-        A matplotlib figure object that can be rendered via st.pyplot().
-    """
-    pareto_front = Engine.return_pareto_front(population)
-    top_n = Engine.generate_new_generation_NSGA_2(config.POPULATION_RETENTION_SIZE, population)
-    
-    top_n_data = np.array([(ind['fitness'], ind['complexity']) for ind in top_n])
+def plot_next_gen_parents(population_dict, yscale='log', ymax=None, ymin=None):
+    pareto_front = Engine.return_pareto_front(population_dict)
+    top_n = Engine.generate_new_generation_NSGA_2(config.POPULATION_RETENTION_SIZE, population_dict)
+    top_n_data = np.array([(ind['fitness'], ind['complexity']) for ind in top_n.values()])
     pareto_plot_data = np.array([(ind['fitness'], ind['complexity']) for ind in pareto_front])
-    population_plot_data = np.array([(ind['fitness'], ind['complexity']) for ind in population])
-    
+    population_plot_data = np.array([(ind['fitness'], ind['complexity']) for ind in population_dict.values()])
     utopia_point = [min(population_plot_data[:, 1]), min(population_plot_data[:, 0])]
     if config.VERBOSE:
         st.write("Utopia point:", utopia_point)
-    
     fig, ax = plt.subplots()
     ax.scatter(population_plot_data[:, 1], population_plot_data[:, 0], s=15, label="Population")
     ax.scatter(top_n_data[:, 1], top_n_data[:, 0], s=15, label="Parent Candidates")
@@ -60,6 +45,6 @@ def plot_next_gen_parents(population, yscale='log', ymax=None, ymin=None):
     ax.set_xlabel("Complexity")
     if yscale == 'log':
         ax.set_yscale("log")
-    if (ymax is not None and ymin is not None):
+    if ymax is not None and ymin is not None:
         ax.set_ylim(ymin, ymax)
     return fig
