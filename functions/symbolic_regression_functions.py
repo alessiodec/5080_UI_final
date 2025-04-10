@@ -90,6 +90,7 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
 
             X = df[['Geometric1', 'Geometric2']].values
             y = df[output_var].values.reshape(-1,)
+
             mean_y = np.mean(y)
             std_y = np.std(y)
             config.mean_y = mean_y
@@ -200,11 +201,11 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
                     st.write(f"DEBUG: Early stopping triggered at iteration {i+1}")
                     break
 
-            # Update the real-time plot
+            # --- Update the Real-Time Plot ---
             ax.cla()
-            ax.plot(iterations, avg_fitness_arr, label="Average Population Fitness")
-            ax.plot(iterations, avg_complexity_arr, label="Complexity")
-            ax.plot(iterations, best_fitness_arr, label="Lowest Population Fitness")
+            ax.plot(iterations, avg_fitness_arr, 'bo-', label="Average Population Fitness")  # added markers and line style
+            ax.plot(iterations, avg_complexity_arr, 'ro-', label="Complexity")              # added markers and line style
+            ax.plot(iterations, best_fitness_arr, 'go-', label="Lowest Population Fitness") # added markers and line style
             ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
             ax.set_ylabel("Fitness - 1-$R^2$")
             ax.set_xlabel("Iteration")
@@ -212,8 +213,8 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
             ax.set_title(f"Population Metrics {dataset_choice} // {output_var}")
 
             plot_placeholder.pyplot(fig)
-            evolution_progress.progress((i + 1) / number_of_iterations)
-            # Removed sleep delay for faster processing
+            evolution_progress.progress(int((i + 1) / number_of_iterations * 100))
+            time.sleep(0.5)  # Added delay so that plot updates are visible
 
     st.write("DEBUG: Evolution iterations complete")
 
@@ -231,3 +232,4 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
     equation = sp.Eq(sp.Symbol(output_var), best_sympy_expr)
     st.latex(sp.latex(equation))
     st.write("DEBUG: Evolution experiment complete")
+
