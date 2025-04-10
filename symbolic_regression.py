@@ -35,15 +35,16 @@ def run():
         elif st.session_state['dataset'] == 'heatsink':
             col1_out, col2_out = st.columns(2)
             if col1_out.button("Pressure Drop"):
-                st.session_state['output'] = 'pressure_drop'
+                st.session_state['output'] = 'Pressure_Drop'
             if col2_out.button("Thermal Resistance"):
-                st.session_state['output'] = 'thermal_resistance'
+                st.session_state['output'] = 'Thermal_Resistance'
 
     # Once both dataset and output are selected, show regression input fields.
     if 'dataset' in st.session_state and 'output' in st.session_state:
         st.write("Please Select the Regression Inputs:")
         population_size = st.number_input("Population Size", value=100, step=1)
-        population_retention_size = st.number_input("Population Retention Size", value=50, step=1)
+        # Changed default from 50 to 20 to allow more variation (as in the normal SR code)
+        population_retention_size = st.number_input("Population Retention Size", value=20, step=1)
         number_of_iterations = st.number_input("Number of Iterations", value=10, step=1)
 
         # When Run Regression is pressed, map selections and call the evolution function.
@@ -62,7 +63,7 @@ def run():
                     output_var = output_selected  # fallback
             elif dataset_selected.lower() == 'heatsink':
                 dataset_choice = "HEATSINK"
-                # Map output variable: "pressure_drop" -> "Pressure_Drop", "thermal_resistance" -> "Thermal_Resistance"
+                # Map output variable: "Pressure_Drop" -> "Pressure_Drop", "Thermal_Resistance" -> "Thermal_Resistance"
                 if output_selected.lower() == 'pressure_drop':
                     output_var = "Pressure_Drop"
                 elif output_selected.lower() == 'thermal_resistance':
