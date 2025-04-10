@@ -1,66 +1,74 @@
 import streamlit as st
+import time
 
-def run():
-    st.title("Test Page")
-    st.write("Select one of the options below.")
-    
-    # Initialize session state variables if not already set
-    if "dataset_choice" not in st.session_state:
-        st.session_state["dataset_choice"] = None
-    if "output_choice" not in st.session_state:
-        st.session_state["output_choice"] = None
-    
-    # STEP 1: First level buttons: "C" or "H"
+# Import the evolution function from functions/test_functions.py
+from functions.test_functions import run_evolution_experiment
+
+def run_ui():
+    st.title("Regression Evolution Experiment")
+    st.write("Select a dataset and an output variable, then set evolution parameters.")
+
+    # --- STEP 1: Dataset selection (C for CORROSION, H for HEATSINK) ---
     col1, col2 = st.columns(2)
     with col1:
         if st.button("C"):
-            st.session_state["dataset_choice"] = "CORROSION"  # Save as a string
-            # Reset output choice if re-selecting dataset
-            st.session_state["output_choice"] = None
+            st.session_state["dataset_choice"] = "CORROSION"
+            st.session_state["output_choice"] = None  # Reset output selection if reselecting
     with col2:
         if st.button("H"):
-            st.session_state["dataset_choice"] = "HEATSINK"    # Save as a string
+            st.session_state["dataset_choice"] = "HEATSINK"
             st.session_state["output_choice"] = None
 
-    # Display the chosen dataset if one is selected
-    if st.session_state["dataset_choice"]:
-        st.write(f"Dataset choice selected: {st.session_state['dataset_choice']}")
-        
-        # STEP 2: Display second level buttons based on the first selection.
-        # If "C" was pressed, show buttons "CR" and "SR".
-        # If "H" was pressed, show buttons "PD" and "TR".
+    if "dataset_choice" in st.session_state and st.session_state["dataset_choice"]:
+        st.markdown(f"**Dataset Choice:** {st.session_state['dataset_choice']}")
+
+        # --- STEP 2: Output variable selection based on dataset ---
         if st.session_state["dataset_choice"] == "CORROSION":
             col1, col2 = st.columns(2)
             with col1:
                 if st.button("CR"):
-                    st.session_state["output_choice"] = "CR"  # Save as a string
+                    st.session_state["output_choice"] = "CR"
             with col2:
                 if st.button("SR"):
-                    st.session_state["output_choice"] = "SR"  # Save as a string
+                    st.session_state["output_choice"] = "SR"
         elif st.session_state["dataset_choice"] == "HEATSINK":
             col1, col2 = st.columns(2)
             with col1:
-                if st.button("PD"):
-                    st.session_state["output_choice"] = "PD"  # Save as a string
+                if st.button("Thermal_Resistance"):
+                    st.session_state["output_choice"] = "Thermal_Resistance"
             with col2:
-                if st.button("TR"):
-                    st.session_state["output_choice"] = "TR"  # Save as a string
+                if st.button("Pressure_Drop"):
+                    st.session_state["output_choice"] = "Pressure_Drop"
 
-    # STEP 3: Once the second-level button is pressed, display the number input fields.
-    if st.session_state.get("output_choice"):
-        st.write(f"Output choice selected: {st.session_state['output_choice']}")
-        
-        # Number input fields for user-defined parameters.
-        # The keys ensure values are stored in session_state.
-        pop_size = st.number_input("Pop size", min_value=0, step=1, key="pop_size")
-        pop_ret_size = st.number_input("Pop ret size", min_value=0, step=1, key="pop_ret_size")
-        num_itns = st.number_input("Num itns", min_value=0, step=1, key="num_itns")
-    
-        # STEP 4: Confirm button that prints out the current variable names and values.
+    # --- STEP 3: Numeric inputs for evolution parameters ---
+    if "output_choice" in st.session_state and st.session_state["output_choice"]:
+        st.markdown(f"**Output Choice:** {st.session_state['output_choice']}")
+        pop_size = st.number_input("Population Size", min_value=1, value=1500, step=1, key="pop_size")
+        pop_ret_size = st.number_input("Population Retention Size", min_value=1, value=300, step=1, key="pop_ret_size")
+        num_itns = st.number_input("Number of Iterations", min_value=1, value=10, step=1, key="num_itns")
+
+        # Create a placeholder for the real-time evolution plot.
+        plot_placeholder = st.empty()
+
+        # --- STEP 4: Confirm and run experiment ---
         if st.button("Confirm"):
-            st.write("### Current Variable Values:")
-            st.write(f"**dataset_choice:** {st.session_state['dataset_choice']}")
-            st.write(f"**output_choice:** {st.session_state['output_choice']}")
-            st.write(f"**Pop size:** {st.session_state['pop_size']}")
-            st.write(f"**Pop ret size:** {st.session_state['pop_ret_size']}")
-            st.write(f"**Num itns:** {st.session_state['num_itns']}")
+            st.write("### Confirmed Inputs:")
+            st.write(f"**Dataset:** {st.session_state['dataset_choice']}")
+            st.write(f"**Output Variable:** {st.session_state['output_choice']}")
+            st.write(f"**Population Size:** {pop_size}")
+            st.write(f"**Population Retention Size:** {pop_ret_size}")
+            st.write(f"**Number of Iterations:** {num_itns}")
+            st.write("Running evolution experiment… please wait.")
+
+            # Call the evolution experiment function (passing the plot placeholder for live updates)
+            run_evolution_experiment(
+                dataset_choice=st.session_state["dataset_choice"],
+                output_var=st.session_state["output_choice"],
+                population_size=pop_size,
+                population_retention_size=pop_ret_size,
+                number_of_iterations=num_itns,
+                st_container=plot_placeholder
+            )
+
+if __name__ == "__main__":
+    run_ui()
