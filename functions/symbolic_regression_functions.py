@@ -202,7 +202,7 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
 
     # --- Determine Best Individual ---
     final_equation = None
-    with st.spinner("Analyzing results and finding best expression..."):
+    with st.spinner("Analysing results and finding best expression..."):
         if not new_population:
             st.error("Evolution resulted in an empty population. Cannot determine best individual.")
             return
@@ -240,6 +240,8 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
         time.sleep(0.5) # Ensure spinner visibility
 
     # --- Display Final Result ---
+    st.write(f"DEBUG: Type of final_equation before check: {type(final_equation)}") # <-- ADD THIS LINE
+    st.write(f"DEBUG: Value of final_equation before check: {final_equation}")      # <-- ADD THIS LINE
     if final_equation is not None:
         st.success("Evolution Complete! Best Equation Found:")
         st.latex(sp.latex(final_equation))
