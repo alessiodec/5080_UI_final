@@ -109,15 +109,15 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
     # --- Initialize Population ---
     init_population = {} # Define before spinner in case initialization fails
     try:
-        with st.spinner("Initializing population..."):
+        with st.spinner("Initialising population..."):
             init_population = Engine.initialize_population()  # Generate initial individuals
             if not init_population: # Check if initialization yielded any individuals
-                 st.error("Failed to initialize population. Check parameters or evaluation function.")
+                 st.error("Failed to initialise population. Check parameters or evaluation function.")
                  return
             Engine.evaluate_population(init_population) # Evaluate fitness
             time.sleep(0.5) # Ensure spinner visibility
     except Exception as e:
-        st.error(f"An error occurred during population initialization: {e}")
+        st.error(f"An error occurred during population initialisation: {e}")
         # Optionally display traceback if needed for debugging
         # st.exception(e)
         return
