@@ -202,13 +202,31 @@ def simplify_population(population_dict):
         return population_dict
     return simplified_population
 
+# Streamlit
 def initialize_population():
     init_population = {}
-    while len(init_population) < config.POPULATION_SIZE:
+    
+    # Create a progress bar
+    progress_bar = st.progress(0)
+    status_text = st.empty()
+    
+    attempts = 0
+    max_attempts = config.POPULATION_SIZE * 10  # Safety limit to prevent infinite loops
+    
+    while len(init_population) < config.POPULATION_SIZE and attempts < max_attempts:
+        attempts += 1
+        
+        # Update progress display
+        progress_percentage = min(1.0, len(init_population) / config.POPULATION_SIZE)
+        progress_bar.progress(progress_percentage)
+        status_text.text(f"Initializing population: {len(init_population)}/{config.POPULATION_SIZE}")
+        
         individual = toolbox.individual()
         fitness, complexity = evaluate_individual(individual)
+        
         if complexity > config.COMPLEXITY_MAX_THRESHOLD or complexity < config.COMPLEXITY_MIN_THRESHOLD or fitness > config.FIT_THRESHOLD:
             continue
+            
         key = convert_individual_to_key(individual)
         if key not in init_population or fitness < init_population[key]['fitness']:
             init_population[key] = {
@@ -217,9 +235,18 @@ def initialize_population():
                 'individual': individual,
                 'is_simplified': False,
             }
+    
+    # Clear the temporary status elements
+    status_text.empty()
+    progress_bar.empty()
+    
+    if len(init_population) < config.POPULATION_SIZE:
+        st.warning(f"Could only generate {len(init_population)} valid individuals after {attempts} attempts")
+    
     if config.USE_SIMPLIFICATION:
-         init_population = simplify_population(init_population)
-    return init_population  # Return dictionary
+        init_population = simplify_population(init_population)
+        
+    return init_population
 
 # ---------- Pareto and Dominance Functions ----------
 def return_pareto_front(population_dict):
