@@ -1,3 +1,5 @@
+# symbolic_regression.py
+
 import streamlit as st
 import matplotlib.pyplot as plt
 from functions.symbolic_regression_functions import run_evolution_experiment
