@@ -5,12 +5,11 @@ st.set_page_config(layout="wide")
 
 # SIDEBAR NAVIGATION
 st.sidebar.title("Navigation")
+# --- Removed "Test" and "Symbolic Regression" from the list ---
 page = st.sidebar.radio("Go to", [
-    "Home", 
-    "Test", 
-    "Data Analysis // Surrogate Modelling", 
-    "Optimisation", 
-    "Symbolic Regression", 
+    "Home",
+    "Data Analysis // Surrogate Modelling",
+    "Optimisation",
     "Symbolic Regression (BETA)"
 ])
 
@@ -21,16 +20,13 @@ if page == "Data Analysis // Surrogate Modelling":
 elif page == "Optimisation":
     import optimisation
     optimisation.run()
-elif page == "Symbolic Regression":
-    import physical_relationship_analysis
-    physical_relationship_analysis.run()
+# --- Removed the elif block for "Symbolic Regression" ---
 elif page == "Symbolic Regression (BETA)":
+    # This now correctly points to your symbolic_regression.py module
     import symbolic_regression
     symbolic_regression.run()
-elif page == "Test":
-    import test
-    test.run_ui()
-else:
+# --- Removed the elif block for "Test" ---
+else: # This defaults to the Home page
     # HOME PAGE TEXT
     st.title("Machine Learning-Enabled Optimisation of Industrial Flow Systems - UI Tool")
     st.write("""
