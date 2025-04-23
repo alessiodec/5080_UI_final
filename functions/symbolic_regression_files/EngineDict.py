@@ -21,6 +21,8 @@ from datetime import datetime
 import sympy as sp
 from sympy import log as sympy_log, exp as sympy_exp
 
+from sklearn.metrics import r2_score # Ensure metrics are imported
+
 import streamlit as st  # For Streamlit logging/display if needed
 
 # Custom exception for our operations
@@ -107,36 +109,113 @@ config.TOOLBOX = toolbox
 config.PSET = pset
 
 # ---------- Evaluation Functions ----------
+# In functions/symbolic_regression_files/EngineDict.py
+# Ensure necessary imports are present at the top of the file:
+# from . import config
+# from deap import gp
+# import numpy as np
+# from sklearn.metrics import r2_score
+# import streamlit as st # For logging if DISPLAY_ERROR_MESSAGES is True
+
+# --- Define CustomOperationException if not already present ---
+class CustomOperationException(Exception):
+    pass
+
+# --- Rewritten evaluate_individual function ---
 def evaluate_individual(individual):
-    func = gp.compile(expr=individual, pset=pset)
-    complexity = len(individual)
-    # Terminal checks
-    if config.DATASET == 'HEATSINK':
-        if not (('G1' in str(individual)) and ('G2' in str(individual))):
-            return config.FIT_THRESHOLD + 1, complexity
-    elif config.DATASET == 'CORROSION':
-        individual_str = str(individual)
-        # Require at least one of the expected terminals
-        if not any(term in individual_str for term in ["pH", "T", "LogP", "LogV", "LogD"]):
-            return config.FIT_THRESHOLD + 1, complexity
+    """
+    Evaluates the fitness and complexity of a given individual using the
+    primitive set (PSET) defined in the config module. Includes error handling.
+    """
+    complexity = len(individual) # Calculate complexity first
+
+    # --- Compile the individual using the PSET from config ---
     try:
+        # CORE FIX: Use config.PSET which is updated dynamically
+        func = gp.compile(expr=individual, pset=config.PSET)
+    except Exception as compile_error:
+        # Handle errors during compilation (e.g., arity mismatch)
+        if config.DISPLAY_ERROR_MESSAGES:
+            st.warning(f"Compile Error for {str(individual)}: {compile_error}")
+        return config.FIT_THRESHOLD + 1, complexity # Assign high fitness
+
+    # --- Optional: Terminal checks (can be strict, consider disabling for debug) ---
+    # if config.DATASET == 'HEATSINK':
+    #     individual_str = str(individual)
+    #     if not ('G1' in individual_str and 'G2' in individual_str):
+    #         return config.FIT_THRESHOLD + 1, complexity
+    # elif config.DATASET == 'CORROSION':
+    #     individual_str = str(individual)
+    #     if not any(term in individual_str for term in ["pH", "T", "LogP", "LogV", "LogD"]):
+    #         return config.FIT_THRESHOLD + 1, complexity
+
+    # --- Evaluate the compiled function ---
+    try:
+        # Basic check: Ensure data is loaded
+        if config.X is None or config.y is None:
+             raise ValueError("config.X or config.y not set.")
+
+        # Select appropriate function call based on dataset arity
         if config.DATASET == 'HEATSINK':
+            if config.X.shape[1] != 2: raise ValueError("HEATSINK requires 2 features in config.X")
             y_pred = [func(x[0], x[1]) for x in config.X]
         elif config.DATASET == 'CORROSION':
+            if config.X.shape[1] != 5: raise ValueError("CORROSION requires 5 features in config.X")
             y_pred = [func(x[0], x[1], x[2], x[3], x[4]) for x in config.X]
         elif config.DATASET == 'BENCHMARK':
+            # Assuming 3 inputs for BENCHMARK, adjust if necessary
+            if config.X.shape[1] != 3: raise ValueError("BENCHMARK requires 3 features in config.X")
             y_pred = [func(x[0], x[1], x[2]) for x in config.X]
         else:
-            raise CustomOperationException('config.DATASET not set correctly')
+            raise CustomOperationException(f"Unknown config.DATASET: {config.DATASET}")
+
+        # --- Process predictions and calculate fitness ---
         y_pred = np.array(y_pred).reshape(-1,)
-        if config.USE_RMSE:
-            fitness = np.sqrt(np.mean((config.y - y_pred) ** 2))
+
+        # Check for numerical issues in predictions
+        if np.isnan(y_pred).any() or np.isinf(y_pred).any():
+            raise ValueError("NaN or Inf detected in predictions.")
+
+        # Create a mask for finite values in both y_true and y_pred
+        mask = np.isfinite(config.y) & np.isfinite(y_pred)
+
+        # Handle cases where no valid comparison points exist
+        if np.sum(mask) < 2: # Need at least 2 points for meaningful comparison/R^2
+            fitness = config.FIT_THRESHOLD + 1
         else:
-            fitness = 1 - r2_score(config.y, y_pred)
-    except Exception as e:
+            y_true_masked = config.y[mask]
+            y_pred_masked = y_pred[mask]
+
+            if config.USE_RMSE:
+                 # Calculate RMSE using masked data
+                 fitness = np.sqrt(np.mean((y_true_masked - y_pred_masked) ** 2))
+            else:
+                 # Calculate 1 - R^2 using masked data
+                 # Handle zero variance case for R^2 calculation
+                 if np.var(y_true_masked) < 1e-12:
+                      # If target is constant, R^2 is undefined or 1 if prediction matches, 0 otherwise.
+                      # Assign high fitness if prediction doesn't match the constant value.
+                      if np.mean((y_true_masked - y_pred_masked)**2) > 1e-12:
+                           fitness = config.FIT_THRESHOLD + 1
+                      else: # Perfect fit to a constant
+                           fitness = 0.0 # (1 - R^2 = 1 - 1 = 0)
+                 else:
+                      fitness = 1.0 - r2_score(y_true_masked, y_pred_masked)
+
+        # Ensure fitness is a finite number
+        if not np.isfinite(fitness):
+            fitness = config.FIT_THRESHOLD + 1
+
+    # --- Catch evaluation errors ---
+    except (ValueError, ZeroDivisionError, OverflowError, TypeError, CustomOperationException) as e:
         if config.DISPLAY_ERROR_MESSAGES:
-            st.write(e)
+            st.warning(f"Eval Error for {str(individual)} ({type(e).__name__}): {e}")
+        fitness = config.FIT_THRESHOLD + 1 # Penalize errors heavily
+    except Exception as e: # Catch any other unexpected errors
+        if config.DISPLAY_ERROR_MESSAGES:
+             st.error(f"Unexpected Eval Error for {str(individual)} ({type(e).__name__}): {e}")
         fitness = config.FIT_THRESHOLD + 1
+
     return fitness, complexity
 
 def evaluate_population(population_dict):
