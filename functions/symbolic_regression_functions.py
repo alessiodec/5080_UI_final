@@ -211,10 +211,14 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
         if not pareto_front: # Correctly checks if the list is empty
              st.warning("Pareto front is empty. Selecting best overall fitness individual.")
              # Fallback: find best fitness from the whole population
+             # Check if population is empty before sorting
+             if not new_population:
+                 st.error("Final population is empty, cannot select best individual.")
+                 return
              pareto_list = sorted(list(new_population.values()), key=lambda x: x['fitness'])
         else:
             # Process Pareto front if not empty
-            pareto_list = list(pareto_front) # Convert numpy array elements if needed
+            pareto_list = list(pareto_front) # It's already a list
             pareto_list.sort(key=lambda x: x['fitness']) # Sort by fitness (lowest is best)
 
         if not pareto_list:
@@ -230,8 +234,42 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
              # Further simplification if desired (might be slow)
              # best_sympy_expr = simp.simplify_sympy_expression(best_sympy_expr)
 
-             # Create the equation object
-             final_equation = sp.Eq(sp.Symbol(output_var), best_sympy_expr)
+             # --- START: ADDED SYMBOL SUBSTITUTION ---
+             # Define generic symbols used by simplification/conversion
+             x0, x1, x2, x3, x4 = sp.symbols('x0 x1 x2 x3 x4')
+
+             # Define target symbols/expressions
+             sub_dict = {}
+             if dataset_choice == 'HEATSINK':
+                 G1, G2 = sp.symbols('G1 G2')
+                 sub_dict = {x0: G1, x1: G2}
+             elif dataset_choice == 'CORROSION':
+                 # Use sp.Symbol for single variables, sp.log for log terms
+                 pH_sym, Tc_sym = sp.symbols('pH T_c') # Use T_c as requested
+                 P_sym, v_sym, d_sym = sp.symbols('P v d')
+                 # Use sympy's log for natural log by default, specify base=10 if needed
+                 # Assuming base 10 based on your data loading step
+                 LogP_expr = sp.log(P_sym, 10)
+                 LogV_expr = sp.log(v_sym, 10)
+                 LogD_expr = sp.log(d_sym, 10)
+                 sub_dict = {
+                     x0: pH_sym,
+                     x1: Tc_sym,
+                     x2: LogP_expr,
+                     x3: LogV_expr,
+                     x4: LogD_expr
+                 }
+
+             # Apply substitution if a dictionary was created
+             if sub_dict:
+                 substituted_expr = best_sympy_expr.subs(sub_dict)
+             else:
+                 substituted_expr = best_sympy_expr # No substitution needed/possible
+
+             # --- END: ADDED SYMBOL SUBSTITUTION ---
+
+             # Create the equation object using the substituted expression
+             final_equation = sp.Eq(sp.Symbol(output_var), substituted_expr) # Use substituted_expr here
 
         except Exception as final_error:
              st.error(f"Error processing final expression: {final_error}")
@@ -240,10 +278,10 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
         time.sleep(0.5) # Ensure spinner visibility
 
     # --- Display Final Result ---
-    #st.write(f"DEBUG: Type of final_equation before check: {type(final_equation)}") # <-- ADD THIS LINE
-    #st.write(f"DEBUG: Value of final_equation before check: {final_equation}")      # <-- ADD THIS LINE
+    #st.write(f"DEBUG: Type of final_equation before check: {type(final_equation)}") # <-- DEBUG LINE
+    #st.write(f"DEBUG: Value of final_equation before check: {final_equation}")      # <-- DEBUG LINE
     if final_equation is not None:
         st.success("Evolution Complete! Best Equation Found:")
-        st.latex(sp.latex(final_equation))
+        st.latex(sp.latex(final_equation)) # Display the equation with substituted symbols
     else:
         st.warning("Evolution finished, but failed to generate the final equation display.")
