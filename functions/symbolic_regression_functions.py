@@ -83,6 +83,13 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
             return
     st.write("DEBUG: Dataset loading complete")
 
+    # Critical fix: Update config DATASET before anything else
+    st.write("DEBUG: Setting evolution parameters")
+    config.DATASET = dataset_choice  # This must happen first
+    config.POPULATION_SIZE = population_size
+    config.POPULATION_RETENTION_SIZE = population_retention_size
+    st.write("DEBUG: Evolution parameters set")
+
     # --- Set Evolution Parameters ---
     st.write("DEBUG: Setting evolution parameters")
     config.FIT_THRESHOLD = 10  # as in VS code version
