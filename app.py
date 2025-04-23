@@ -10,7 +10,7 @@ page = st.sidebar.radio("Go to", [
     "Home",
     "Data Analysis // Surrogate Modelling",
     "Optimisation",
-    "Symbolic Regression (BETA)"
+    "Symbolic Regression"
 ])
 
 # ROUTE TO PAGE
@@ -21,7 +21,7 @@ elif page == "Optimisation":
     import optimisation
     optimisation.run()
 # --- Removed the elif block for "Symbolic Regression" ---
-elif page == "Symbolic Regression (BETA)":
+elif page == "Symbolic Regression":
     # This now correctly points to your symbolic_regression.py module
     import symbolic_regression
     symbolic_regression.run()
