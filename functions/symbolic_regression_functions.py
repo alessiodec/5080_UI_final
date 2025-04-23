@@ -208,7 +208,7 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
             return
 
         pareto_front = Engine.return_pareto_front(new_population)
-        if not pareto_front.size > 0: # Check if pareto front is not empty (numpy array check)
+                if not pareto_front: # Correctly checks if the list is empty
              st.warning("Pareto front is empty. Selecting best overall fitness individual.")
              # Fallback: find best fitness from the whole population
              pareto_list = sorted(list(new_population.values()), key=lambda x: x['fitness'])
