@@ -128,7 +128,11 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
         warnings.simplefilter("ignore", RuntimeWarning)
         for i in range(number_of_iterations):
             st.write(f"DEBUG: Starting iteration {i+1}")
-            new_population = Engine.generate_new_population(population=new_population.copy())
+
+            # new_population = Engine.generate_new_population(population=new_population.copy())
+            
+            new_population = Engine.generate_new_population(population_dict=new_population.copy())
+            
             st.write(f"DEBUG: Population generated at iteration {i+1}")
             # Evaluate population and record metrics
             avg_fit, avg_comp, best_fit = Engine.evaluate_population(new_population)
