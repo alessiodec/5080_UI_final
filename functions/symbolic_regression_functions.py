@@ -240,7 +240,7 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
         time.sleep(0.5) # Ensure spinner visibility
 
     # --- Display Final Result ---
-    if final_equation:
+    if final_equation is not None:
         st.success("Evolution Complete! Best Equation Found:")
         st.latex(sp.latex(final_equation))
     else:
