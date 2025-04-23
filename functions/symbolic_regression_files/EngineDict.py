@@ -380,15 +380,72 @@ def generate_new_generation_NSGA_2(n, population_dict, tournament_selection=Fals
     return next_generation
 
 # ---------- Tournament Selection, Mating and Mutation ----------
+# In functions/symbolic_regression_files/EngineDict.py
+# Make sure these imports/definitions are available in the file scope:
+# import random
+# from . import config
+# import streamlit as st # If using st.warning/st.error
+# from .EngineDict import generate_new_generation_NSGA_2, convert_individual_to_key # Or however they are imported/defined
+
 def tournament_selection(parent_generation_dict, n_selected=2):
+    """
+    Perform tournament selection on a dictionary of parent individuals.
+
+    Args:
+        parent_generation_dict (dict): Dictionary of parent individuals
+                                       (key: str representation, value: dict).
+        n_selected (int): Number of individuals to select (typically 2).
+
+    Returns:
+        list: A list containing the selected parent individual dictionaries.
+              Returns fewer than n_selected if the pool is too small.
+    """
+    # Ensure parent_generation_dict is actually a dictionary
+    if not isinstance(parent_generation_dict, dict):
+        st.error(f"Critical Error: tournament_selection expected a dict, received {type(parent_generation_dict)}")
+        raise TypeError("tournament_selection parent_generation_dict must be a dictionary")
+
     parent_list = list(parent_generation_dict.values())
-    tournament = random.sample(parent_list, config.TORNEMENT_SIZE)
-    if config.TORN_SELECTION_METHOD == 'pareto':
-        selected = generate_new_generation_NSGA_2(n_selected, {convert_individual_to_key(ind['individual']): ind for ind in tournament}, tournament_selection=True)
+
+    # --- Handle edge case: not enough parents for tournament or selection ---
+    if len(parent_list) < n_selected:
+        st.warning(f"Cannot select {n_selected} parents, only {len(parent_list)} available. Returning all available.")
+        return parent_list # Return the available ones directly
+
+    if len(parent_list) < config.TORNEMENT_SIZE:
+        # If fewer parents than tournament size, just sample all available parents for the tournament pool
+        st.warning(f"Tournament pool size reduced to {len(parent_list)} (less than configured {config.TORNEMENT_SIZE}).")
+        tournament = parent_list # Use all available parents as the tournament pool
     else:
+        # Sample normally for the tournament
+        tournament = random.sample(parent_list, config.TORNEMENT_SIZE)
+
+    # --- Perform selection based on method ---
+    if config.TORN_SELECTION_METHOD == 'pareto':
+        # Create a temporary dict for NSGA-II based on the sampled tournament individuals
+        temp_dict = {convert_individual_to_key(ind['individual']): ind for ind in tournament}
+
+        # generate_new_generation_NSGA_2 returns a dictionary of selected individuals
+        selected_dict = generate_new_generation_NSGA_2(n=n_selected, population_dict=temp_dict, tournament_selection=True)
+
+        # --- FIX: Convert the dictionary values (the parent dicts) into a list ---
+        # --- and assign it back to the 'selected' variable ---
+        selected = list(selected_dict.values())
+        # --- END FIX ---
+
+    else: # Default to 'fitness' or other methods
+        # Select based on lowest fitness within the tournament
         tournament.sort(key=lambda x: x['fitness'])
-        selected = tournament[:2]
-    return selected
+        # This already assigns a list slice to 'selected'
+        selected = tournament[:n_selected]
+
+    # --- Final check and return ---
+    # Ensure we didn't somehow get fewer parents than expected
+    if len(selected) < n_selected:
+         st.warning(f"Tournament selection yielded {len(selected)} parents, less than the requested {n_selected}. Using available.")
+         # The calling function `generate_new_population` needs to handle potentially receiving fewer than 2 parents.
+
+    return selected # Return the list of selected parent dictionaries
 
 def mate_and_mutate(parent1, parent2, cxpb=0.95, mutpb=0.5):
     offspring1 = toolbox.clone(parent1['individual'])
