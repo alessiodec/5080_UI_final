@@ -92,7 +92,7 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
 
     # --- Set Evolution Parameters ---
     st.write("DEBUG: Setting evolution parameters")
-    config.FIT_THRESHOLD = 10  # as in VS code version
+    config.FIT_THRESHOLD = 1000  # as in VS code version
     config.POPULATION_SIZE = population_size
     config.POPULATION_RETENTION_SIZE = population_retention_size
     config.DISPLAY_ERROR_MESSAGES = False
