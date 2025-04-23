@@ -156,9 +156,16 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
                 if not new_population:
                     st.warning(f"Iteration {i+1}: generate_new_population returned empty. Using previous population.")
                     # Decide how to handle - reuse old pop? break? For now, reuse old.
-                    new_population = init_population # Revert to initial or previous? Let's reuse previous non-empty.
-                    # Need to track the last known good population
-                    # This part needs refinement based on desired behavior for empty generation
+                    # Find the last non-empty population to reuse
+                    last_good_pop = init_population # Default to initial if first iteration fails
+                    if 'last_good_pop' in locals() and last_good_pop: # Check if exists and non-empty
+                         new_population = last_good_pop.copy()
+                    else:
+                         st.error("Cannot recover from empty population generation. Stopping.")
+                         break # Stop if cannot recover
+                else:
+                     last_good_pop = new_population.copy() # Store the latest good population
+
 
                 # Evaluate population and record metrics
                 avg_fit, avg_comp, best_fit = Engine.evaluate_population(new_population)
@@ -234,39 +241,47 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
              # Further simplification if desired (might be slow)
              # best_sympy_expr = simp.simplify_sympy_expression(best_sympy_expr)
 
-             # --- START: ADDED SYMBOL SUBSTITUTION ---
-             # Define generic symbols used by simplification/conversion
-             x0, x1, x2, x3, x4 = sp.symbols('x0 x1 x2 x3 x4')
+             # --- START: REVISED SYMBOL SUBSTITUTION ---
 
-             # Define target symbols/expressions
-             sub_dict = {}
+             # Get the actual generic symbols present in the expression
+             # These will be the x0, x1, ... symbols created during conversion
+             generic_symbols_in_expr = best_sympy_expr.free_symbols
+
+             # Define mapping from generic symbol NAME string ('x0', 'x1', etc.) to target symbols/expressions
+             target_map = {}
              if dataset_choice == 'HEATSINK':
                  G1, G2 = sp.symbols('G1 G2')
-                 sub_dict = {x0: G1, x1: G2}
+                 target_map = {'x0': G1, 'x1': G2}
              elif dataset_choice == 'CORROSION':
-                 # Use sp.Symbol for single variables, sp.log for log terms
                  pH_sym, Tc_sym = sp.symbols('pH T_c') # Use T_c as requested
                  P_sym, v_sym, d_sym = sp.symbols('P v d')
-                 # Use sympy's log for natural log by default, specify base=10 if needed
-                 # Assuming base 10 based on your data loading step
+                 # Use sympy's log, specify base=10 explicitly
                  LogP_expr = sp.log(P_sym, 10)
                  LogV_expr = sp.log(v_sym, 10)
                  LogD_expr = sp.log(d_sym, 10)
-                 sub_dict = {
-                     x0: pH_sym,
-                     x1: Tc_sym,
-                     x2: LogP_expr,
-                     x3: LogV_expr,
-                     x4: LogD_expr
+                 target_map = {
+                     'x0': pH_sym,
+                     'x1': Tc_sym,
+                     'x2': LogP_expr,
+                     'x3': LogV_expr,
+                     'x4': LogD_expr
                  }
 
-             # Apply substitution if a dictionary was created
+             # Create the substitution dictionary using the actual symbols found in the expression
+             sub_dict = {}
+             for sym in generic_symbols_in_expr:
+                 # Check if the symbol's name matches one of our generic keys ('x0', 'x1', ...)
+                 if sym.name in target_map:
+                     # Map the actual symbol object (sym) to the target symbol/expression
+                     sub_dict[sym] = target_map[sym.name]
+
+             # Apply substitution if the dictionary has mappings
              if sub_dict:
                  substituted_expr = best_sympy_expr.subs(sub_dict)
              else:
                  substituted_expr = best_sympy_expr # No substitution needed/possible
 
-             # --- END: ADDED SYMBOL SUBSTITUTION ---
+             # --- END: REVISED SYMBOL SUBSTITUTION ---
 
              # Create the equation object using the substituted expression
              final_equation = sp.Eq(sp.Symbol(output_var), substituted_expr) # Use substituted_expr here
@@ -278,8 +293,8 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
         time.sleep(0.5) # Ensure spinner visibility
 
     # --- Display Final Result ---
-    #st.write(f"DEBUG: Type of final_equation before check: {type(final_equation)}") # <-- DEBUG LINE
-    #st.write(f"DEBUG: Value of final_equation before check: {final_equation}")      # <-- DEBUG LINE
+    #st.write(f"DEBUG: Type of final_equation before check: {type(final_equation)}") # <-- DEBUG LINE REMOVED
+    #st.write(f"DEBUG: Value of final_equation before check: {final_equation}")      # <-- DEBUG LINE REMOVED
     if final_equation is not None:
         st.success("Evolution Complete! Best Equation Found:")
         st.latex(sp.latex(final_equation)) # Display the equation with substituted symbols
