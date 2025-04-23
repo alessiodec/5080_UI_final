@@ -240,8 +240,8 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
         time.sleep(0.5) # Ensure spinner visibility
 
     # --- Display Final Result ---
-    st.write(f"DEBUG: Type of final_equation before check: {type(final_equation)}") # <-- ADD THIS LINE
-    st.write(f"DEBUG: Value of final_equation before check: {final_equation}")      # <-- ADD THIS LINE
+    #st.write(f"DEBUG: Type of final_equation before check: {type(final_equation)}") # <-- ADD THIS LINE
+    #st.write(f"DEBUG: Value of final_equation before check: {final_equation}")      # <-- ADD THIS LINE
     if final_equation is not None:
         st.success("Evolution Complete! Best Equation Found:")
         st.latex(sp.latex(final_equation))
