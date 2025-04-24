@@ -103,7 +103,7 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
     # config.SIMPLIFICATION_INDEX_INTERVAL = number_of_iterations + 1 # Disable in-loop default simplification
     config.EARLY_STOPPING_THRESHOLD = 20
     config.FITNESS_REDUCTION_THRESHOLD = 5
-    config.USE_SIMPLIFICATION = False # Avoid collapsing expressions during evolution
+    config.USE_SIMPLIFICATION = True # Avoid collapsing expressions during evolution
     config.FITNESS_REDUCTION_FACTOR = 0.8
 
     # --- Initialize Population ---
