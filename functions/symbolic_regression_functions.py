@@ -100,7 +100,7 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
     config.POPULATION_RETENTION_SIZE = population_retention_size
     config.DISPLAY_ERROR_MESSAGES = False # Keep errors off unless debugging
     config.VERBOSE = False # Turn off verbose EngineDict prints for cleaner UI
-    config.SIMPLIFICATION_INDEX_INTERVAL = number_of_iterations + 1 # Disable in-loop default simplification
+    # config.SIMPLIFICATION_INDEX_INTERVAL = number_of_iterations + 1 # Disable in-loop default simplification
     config.EARLY_STOPPING_THRESHOLD = 20
     config.FITNESS_REDUCTION_THRESHOLD = 5
     config.USE_SIMPLIFICATION = False # Avoid collapsing expressions during evolution
