@@ -108,41 +108,89 @@ This heatmap displays how much each original feature contributes to each princip
             }
     # return explained_variance
 
-# cr contour plot
-def plot_5x5_cr(X, scaler_X, cr_model):
+# cr contour plotdef plot_5x5_cr(X, scaler_X, cr_model):
+    """
+    Generates and displays a 5x5 grid of contour plots for corrosion rate.
+
+    Args:
+        X (np.ndarray): The original (unscaled) input data features.
+        scaler_X: The fitted scaler object for the input features.
+        cr_model: The trained corrosion rate prediction model.
+    """
     with st.spinner("Generating corrosion rate contour plots..."):
+        # --- Calculate necessary values ---
         mid_points = np.median(X, axis=0)
         var_names = ['pH', 'T (C)', 'log10 PCO2 (bar)', 'log10 v (ms-1)', 'log10 d']
         mins = X.min(axis=0)
         maxs = X.max(axis=0)
+
+        # --- Create the plot grid ---
         fig, axes = plt.subplots(5, 5, figsize=(20, 20), sharex=False, sharey=False)
-        for i in range(5):
-            for j in range(5):
+
+        # --- Loop through grid to create plots ---
+        for i in range(5): # Rows (y-axis variable)
+            for j in range(5): # Columns (x-axis variable)
                 ax = axes[i, j]
+
+                # --- Diagonal: Variable names ---
                 if i == j:
                     ax.text(0.5, 0.5, var_names[i], fontsize=14, ha='center', va='center')
                     ax.set_xticks([])
                     ax.set_yticks([])
-                    continue
-                x_vals = np.linspace(mins[j], maxs[j], 25)
-                y_vals = np.linspace(mins[i], maxs[i], 25)
+                    continue # Skip plotting for diagonal
+
+                # --- Off-diagonal: Contour plots ---
+                # Define grid for the current subplot
+                x_vals = np.linspace(mins[j], maxs[j], 25) # Varying variable j on x-axis
+                y_vals = np.linspace(mins[i], maxs[i], 25) # Varying variable i on y-axis
                 grid_x, grid_y = np.meshgrid(x_vals, y_vals)
+
+                # Prepare input points for prediction (fix other variables at median)
                 grid_points = np.tile(mid_points, (grid_x.size, 1))
-                grid_points[:, j] = grid_x.ravel()
-                grid_points[:, i] = grid_y.ravel()
+                grid_points[:, j] = grid_x.ravel() # Set varying x-variable
+                grid_points[:, i] = grid_y.ravel() # Set varying y-variable
+
+                # Scale inputs and predict
                 grid_points_scaled = scaler_X.transform(grid_points)
-                predictions_scaled = cr_model.predict(grid_points_scaled)
-                corrosion_rate = predictions_scaled[:, 0].reshape(grid_x.shape)
+                # Assuming cr_model.predict returns shape (n_samples, n_outputs)
+                # and CR is the first output
+                predictions = cr_model.predict(grid_points_scaled)
+                # Ensure predictions is 2D before indexing
+                if predictions.ndim == 1:
+                     predictions = predictions.reshape(-1, 1) # Reshape if model outputs 1D array
+
+                # Extract CR (assuming it's the first output, index 0)
+                corrosion_rate = predictions[:, 0].reshape(grid_x.shape)
+
+
+                # --- Plotting contours ---
                 cont_fill = ax.contourf(grid_x, grid_y, corrosion_rate, levels=10, cmap='viridis')
                 cont_line = ax.contour(grid_x, grid_y, corrosion_rate, levels=10, colors='black', linewidths=0.5)
+                # Add contour labels (inline)
                 ax.clabel(cont_line, inline=True, fontsize=8, colors='white')
+
+                # Set axis labels
                 ax.set_xlabel(var_names[j])
                 ax.set_ylabel(var_names[i])
-        fig.subplots_adjust(right=0.9, hspace=0.4, wspace=0.4)
-        cbar_ax = fig.add_axes([0.92, 0.15, 0.02, 0.7])
-        fig.colorbar(cont_fill, cax=cbar_ax, label='Scaled Corrosion Rate')
+
+        # --- Adjust layout and add colorbar ---
+        fig.subplots_adjust(right=0.9, hspace=0.4, wspace=0.4) # Adjust spacing
+
+        # Add axes for the colorbar
+        cbar_ax = fig.add_axes([0.92, 0.15, 0.02, 0.7]) # Define colorbar position
+
+        # --- Create the colorbar AND store it in the 'cbar' variable ---
+        cbar = fig.colorbar(cont_fill, cax=cbar_ax, label='Scaled Corrosion Rate')
+
+        # --- Set the tick label size using the 'cbar' variable ---
+        # Keeping the original large fontsize as requested
         cbar.ax.tick_params(labelsize=40)
+
+        # --- Add overall title ---
+        # Keeping the original large fontsize as requested
         plt.suptitle('CR For Different Input Combinations', fontsize=40)
+
+        # --- Display plot in Streamlit ---
         st.pyplot(fig)
 
 # sr contour plot
