@@ -179,18 +179,16 @@ def plot_pareto_front_traverse(weight_sensitivity, weight_cr):
 # Function to get full design details for the selected Pareto point.
 # -------------------------------------------------------------------
 def get_selected_design_info(robustI):
-    design_params = ReverseScalingandLog10(advancedRobustProblemResultNSGAX)
+    design_params = load("HeatSinkParetoDesign.joblib")
     obj_vals = np.around(advancedRobustProblemResultNSGAF[robustI], 7)
     design_vars = np.around(design_params[robustI], 7)
-    pred_cr = CorrosionModel.predict(advancedRobustProblemResultNSGAX[robustI].reshape(1, -1),
-                                      verbose=False)[0]
-    pred_sr = 10 ** (SaturationModel.predict(advancedRobustProblemResultNSGAX[robustI].reshape(1, -1),
-                                              verbose=False)[0])
+    pred_dp = advancedRobustProblemResultNSGAF[robustI, 1]
+    pred_tr = advancedRobustProblemResultNSGAF[robustI, 0]
     return {
-         "Objective Values (Sensitivity, CR)": obj_vals,
+         "Objective Values (TR, DP)": obj_vals,
          "Design Variables": design_vars,
-         "Predicted CR": pred_cr,
-         "Predicted SR": pred_sr
+         "Predicted DP": pred_dp,
+         "Predicted TR": pred_tr
     }
 
 # --- End of functions ---
