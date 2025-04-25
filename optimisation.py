@@ -132,8 +132,8 @@ def traverse_pareto_page():
                 )
 
                 predicted_outputs_str = (
-                    f"**Predicted Outputs:** CR = {pred_cr:.4f} (mm/year), "
-                    f"SR = {pred_sr:.4f}"
+                    f"**Predicted Outputs:** PD = {pred_dp:.4f} [Pa], "
+                    f"TR = {pred_tr:.4f} [C/W]"
                 )
 
                 # Display the formatted strings using st.markdown
