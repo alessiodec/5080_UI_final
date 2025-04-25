@@ -181,14 +181,14 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
                 evolution_progress.progress(progress_percent, text=f"Evolution Progress: Iteration {i+1}/{number_of_iterations}")
 
                 # Update the plot dynamically
-                fig, ax = plt.subplots(figsize=(8, 5))
+                fig, ax = plt.subplots(figsize=(10, 7))
                 ax.plot(iterations, avg_fitness_arr, 'bo-', label="Avg Fitness")
                 ax.plot(iterations, avg_complexity_arr, 'ro-', label="Avg Complexity")
                 ax.plot(iterations, best_fitness_arr, 'go-', label="Best Fitness")
                 ax.set_xlabel("Iteration")
                 ax.set_ylabel("Fitness (1 - R^2)")
                 ax.set_yscale("log") # Keep log scale for fitness
-                ax.legend(loc='best') # Use 'best' location for legend
+                ax.legend(loc='best', fontsize = 8) # Use 'best' location for legend
                 ax.set_title(f"Population Metrics: {dataset_choice} // {output_var}")
                 ax.grid(True) # Add grid for better readability
                 chart_placeholder.pyplot(fig)
