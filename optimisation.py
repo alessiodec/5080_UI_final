@@ -41,15 +41,6 @@ def optimisation_menu():
         st.session_state["optimisation_page"] = "pareto_front"
         st.rerun() # Added rerun for immediate navigation
 
-    # --- Keeping user's original "Go to Home" button logic ---
-    # Note: This might conflict with the main app's sidebar navigation logic.
-    # If the goal is to return to the *Optimisation Menu*, it should set state to "optimisation".
-    # If the goal is to return to the *App Home Page*, this button might need different handling
-    # or removal if the sidebar is the primary navigation. Assuming user wants it as is:
-    # if st.button("Go to Home"):
-    #    st.session_state["optimisation_page"] = "optimisation" # This actually goes back to the optimisation menu based on the run() logic
-    #    st.rerun()
-    # --- Reverting to exactly what user provided ---
     if st.button("Go to Home"):
          st.session_state["optimisation_page"] = "optimisation"
          # removed rerun() to match original exactly
@@ -97,7 +88,9 @@ def traverse_pareto_page():
     This page allows you to explore the Pareto front of the multi-objective optimisation.
 
     **Preference Slider:**
-    Use the slider below to set your preference between Sensitivity and CR.
+    Use the slider below to set your preference between Sensitivity (left) and CR (right).
+    Minimise Sensitivty Preference: Lower sensitivities indicate a more robust design, less sensitive to input changed
+    Minimise CR Preference: Minimal corrosion rate, pipe lasts longer and degrades slower
     Move the slider to adjust your preference between Sensitivity (robustness) and CR (corrosion rate).
 
     - At the left end (0.0), the weights are (1, 0), meaning full preference for Sensitivity and none for CR.
