@@ -128,12 +128,12 @@ def traverse_pareto_page():
                 # Format the output strings exactly as requested
                 optimal_design_str = (
                     f"**Optimal Design:** G1 = {design_vars[0]:.2f}, "
-                    f"G2 = {design_vars[1]:.2f} (K), "
+                    f"G2 = {design_vars[1]:.2f}, "
                 )
 
                 predicted_outputs_str = (
                     f"**Predicted Outputs:** PD = {pred_dp:.4f} [Pa], "
-                    f"TR = {pred_tr:.4f} [C/W]"
+                    f"TR = {pred_tr:.4f} [°C/W]"
                 )
 
                 # Display the formatted strings using st.markdown
