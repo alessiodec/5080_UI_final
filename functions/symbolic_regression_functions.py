@@ -188,7 +188,7 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
                 ax.set_xlabel("Iteration")
                 ax.set_ylabel("Fitness (1 - R^2)")
                 ax.set_yscale("log") # Keep log scale for fitness
-                ax.legend(loc='best', fontsize = 16) # Use 'best' location for legend
+                ax.legend(loc='best', fontsize = 15) # Use 'best' location for legend
                 ax.set_title(f"Population Metrics: {dataset_choice} // {output_var}")
                 ax.grid(True) # Add grid for better readability
                 chart_placeholder.pyplot(fig)
