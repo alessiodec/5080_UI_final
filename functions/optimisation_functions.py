@@ -169,7 +169,7 @@ def plot_pareto_front_traverse(weight_sensitivity, weight_cr):
     plt.scatter(advancedRobustProblemResultNSGAF[robustI, 0], advancedRobustProblemResultNSGAF[robustI, 1],
                 label="Optimum Design", color="limegreen", marker="x", s=200, linewidths=3)
     plt.title(" Pressure Drop Against Thermal Resistance")
-    plt.xlabel(r"$R_th$ [°C/W]")
+    plt.xlabel(r"$R_{th}$ [°C/W]")
     plt.ylabel(r"$\Delta P$ [Pa]")
     plt.legend()
     plt.grid()
