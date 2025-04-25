@@ -88,7 +88,7 @@ def traverse_pareto_page():
     This page allows you to explore the Pareto front of the multi-objective optimisation.
 
     **Preference Slider:**
-    Use the slider below to set your preference between minimising Pressuee Drop (left) and Thermal Resistance (right).\n
+    Use the slider below to set your preference between minimising Pressure Drop (left) and Thermal Resistance (right).\n
     After adjusting the slider, press the **"Plot Pareto Front"** button to confirm / update your selection and display the corresponding design.
     
     """)
