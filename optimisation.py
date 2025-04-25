@@ -88,11 +88,7 @@ def traverse_pareto_page():
     This page allows you to explore the Pareto front of the multi-objective optimisation.
 
     **Preference Slider:**
-    Use the slider below to set your preference between Sensitivity (left) and CR (right).\n
-    Minimise Sensitivty Preference: Lower sensitivities indicate a more robust design, less sensitive to input changes\n
-    Minimise CR Preference: Minimal corrosion rate, pipe lasts longer and degrades slower\n
-    Move the slider to adjust your preference between Sensitivity (robustness) and CR (corrosion rate).\n
-
+    Use the slider below to set your preference between minimising Pressuee Drop (left) and Thermal Resistance (right).\n
     After adjusting the slider, press the **"Plot Pareto Front"** button to confirm / update your selection and display the corresponding design.
     
     """)
