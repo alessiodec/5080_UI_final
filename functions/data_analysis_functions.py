@@ -132,20 +132,7 @@ def plot_5x5_cr(X, scaler_X, cr_model):
                 grid_points[:, i] = grid_y.ravel()
                 grid_points_scaled = scaler_X.transform(grid_points)
                 predictions_scaled = cr_model.predict(grid_points_scaled)
-                # Handle potential 1D or 2D (N, 1) output from model predict
-                if predictions_scaled.ndim == 1:
-                    # Ensure reshape has correct dimensions
-                    corrosion_rate = predictions_scaled.reshape(grid_x.shape)
-                elif predictions_scaled.ndim == 2 and predictions_scaled.shape[1] >= 1:
-                    # Assume first column is the target if multiple are returned (or N,1)
-                    if predictions_scaled.shape[1] > 1:
-                         st.warning(f"Model prediction shape is {predictions_scaled.shape}. Assuming first column is corrosion rate.")
-                    # Ensure reshape has correct dimensions
-                    corrosion_rate = predictions_scaled[:, 0].reshape(grid_x.shape)
-                else:
-                    # Handle unexpected shape, maybe raise error or log warning
-                    st.error(f"Cannot interpret model prediction shape: {predictions_scaled.shape}")
-                    return # Or handle error appropriately
+                corrosion_rate = predictions_scaled[:, 0].reshape(grid_x.shape)
                 cont_fill = ax.contourf(grid_x, grid_y, corrosion_rate, levels=10, cmap='viridis')
                 cont_line = ax.contour(grid_x, grid_y, corrosion_rate, levels=10, colors='black', linewidths=0.5)
                 ax.clabel(cont_line, inline=True, fontsize=8, colors='white')
@@ -153,48 +140,13 @@ def plot_5x5_cr(X, scaler_X, cr_model):
                 ax.set_ylabel(var_names[i])
         fig.subplots_adjust(right=0.9, hspace=0.4, wspace=0.4)
         cbar_ax = fig.add_axes([0.92, 0.15, 0.02, 0.7])
-        # Create colorbar once and store it in 'cbar'
-        cbar = fig.colorbar(cont_fill, cax=cbar_ax)
-        # Set the colorbar label with the specified fontsize
-        cbar.set_label('Scaled Corrosion Rate', fontsize=40)
-        # Set tick label size using the 'cbar' object
-        cbar.ax.tick_params(labelsize=40)
-        # Set the main title fontsize
-        plt.suptitle('CR For Different Input Combinations', fontsize=40)
+        fig.colorbar(cont_fill, cax=cbar_ax, label='Scaled Corrosion Rate')
+        plt.suptitle('CR For Different Input Combinations', fontsize=18)
         st.pyplot(fig)
-         
-# sr contour plot
-def plot_5x5_cr(X, scaler_X, cr_model):
-     with st.spinner("Generating corrosion rate contour plots..."):
-         mid_points = np.median(X, axis=0)
-         var_names = ['pH', 'T (C)', 'log10 PCO2 (bar)', 'log10 v (ms-1)', 'log10 d']
-         mins = X.min(axis=0)
-         maxs = X.max(axis=0)
-         fig, axes = plt.subplots(5, 5, figsize=(20, 20), sharex=False, sharey=False)
-         for i in range(5):
-             for j in range(5):
-                 ax = axes[i, j]
-                 if i == j:
-                     ax.text(0.5, 0.5, var_names[i], fontsize=14, ha='center', va='center')
-                     ax.set_xticks([])
-                     ax.set_yticks([])
-                     continue
-                 x_vals = np.linspace(mins[j], maxs[j], 25)
-                 y_vals = np.linspace(mins[i], maxs[i], 25)
-                 grid_x, grid_y = np.meshgrid(x_vals, y_vals)
-                 grid_points = np.tile(mid_points, (grid_x.size, 1))
-                 grid_points[:, j] = grid_x.ravel()
-                 grid_points[:, i] = grid_y.ravel()
-                 grid_points_scaled = scaler_X.transform(grid_points)
-                 # Assuming cr_model.predict returns shape (n_samples, n_outputs)
-                 # and CR is the first output
-                 predictions_scaled = cr_model.predict(grid_points_scaled)
-                 # Ensure predictions is 2D before indexing
-                 if predictions_scaled.ndim == 1:
-                      predictions_scaled = predictions_scaled.reshape(-1, 1 not already present globally
 
-def plot_5x5_cr(X, scaler_X, cr_model):
-    with st.spinner("Generating corrosion rate contour plots..."):
+# sr contour plot
+def plot_5x5_sr(X, scaler_X, sr_model):
+    with st.spinner("Generating saturation ratio contour plots..."):
         mid_points = np.median(X, axis=0)
         var_names = ['pH', 'T (C)', 'log10 PCO2 (bar)', 'log10 v (ms-1)', 'log10 d']
         mins = X.min(axis=0)
@@ -215,29 +167,15 @@ def plot_5x5_cr(X, scaler_X, cr_model):
                 grid_points[:, j] = grid_x.ravel()
                 grid_points[:, i] = grid_y.ravel()
                 grid_points_scaled = scaler_X.transform(grid_points)
-                predictions_scaled = cr_model.predict(grid_points_scaled)
-                # Handle potential 1D or 2D (N, 1) output from model predict
-                if predictions_scaled.ndim == 1:
-                    corrosion_rate = predictions_scaled.reshape(grid_x.shape)
-                elif predictions_scaled.shape[1] >= 1:
-                    # Assume first column is the target if multiple are returned (or N,1)
-                    if predictions_scaled.shape[1] > 1:
-                         st.warning(f"Model prediction shape is {predictions_scaled.shape}. Assuming first column is corrosion rate.")
-                    corrosion_rate = predictions_scaled[:, 0].reshape(grid_x.shape)
-                else:
-                    # Handle unexpected shape, maybe raise error or log warning
-                    st.error(f"Cannot interpret model prediction shape: {predictions_scaled.shape}")
-                    return # Or handle error appropriately
-                cont_fill = ax.contourf(grid_x, grid_y, corrosion_rate, levels=10, cmap='viridis')
-                cont_line = ax.contour(grid_x, grid_y, corrosion_rate, levels=10, colors='black', linewidths=0.5)
+                predictions_scaled = sr_model.predict(grid_points_scaled)
+                saturation_ratio = predictions_scaled[:, 0].reshape(grid_x.shape)
+                cont_fill = ax.contourf(grid_x, grid_y, saturation_ratio, levels=10, cmap='viridis')
+                cont_line = ax.contour(grid_x, grid_y, saturation_ratio, levels=10, colors='black', linewidths=0.5)
                 ax.clabel(cont_line, inline=True, fontsize=8, colors='white')
                 ax.set_xlabel(var_names[j])
                 ax.set_ylabel(var_names[i])
         fig.subplots_adjust(right=0.9, hspace=0.4, wspace=0.4)
         cbar_ax = fig.add_axes([0.92, 0.15, 0.02, 0.7])
-        # Create colorbar once and store it in 'cbar'
-        cbar = fig.colorbar(cont_fill, cax=cbar_ax, label='Scaled Corrosion Rate')
-        # Set tick label size using the 'cbar' object
-        cbar.ax.tick_params(labelsize=40)
-        plt.suptitle('CR For Different Input Combinations', fontsize=40)
+        fig.colorbar(cont_fill, cax=cbar_ax, label='Scaled Saturation Ratio')
+        plt.suptitle('SR For Different Input Combinations', fontsize=18)
         st.pyplot(fig)
