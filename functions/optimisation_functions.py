@@ -48,8 +48,8 @@ with st.spinner("Fitting scaler on input data..."):
 # Ensure these joblib files are in your 'models' folder.
 # -------------------------------------------------------------------
 with st.spinner("Loading multiobjective optimisation results..."):
-    advancedRobustProblemResultNSGAF = load("models/advancedRobustProblemResultNSGAF.joblib")
-    advancedRobustProblemResultNSGAX = load("models/advancedRobustProblemResultNSGAX.joblib")
+    advancedRobustProblemResultNSGAF = load("models/HeatsinkParetoObjectives.joblib")
+    advancedRobustProblemResultNSGAX = load("models/HeatsinkParetoDesign.joblib")
 
 # -------------------------------------------------------------------
 # Normalize the Pareto objectives.
