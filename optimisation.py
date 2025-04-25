@@ -23,7 +23,7 @@ def optimisation_menu():
     st.title("Optimisation")
     # --- Using user's original description ---
     st.write("""
-    **Optimisation methods:**
+    **Optimisation methods:**\n
     **Minimise CR for Given d and PCO₂:** Specify the pipe diameter and CO₂ pressure; a differential evolution algorithm will optimise the remaining design variables.
     - This page allows you to minimise the corrosion rate by specifying the pipe diameter and CO₂ partial pressure.
     - Select desired diameter and CO₂ pressure, then minimise CR (SR ≤ 1).
