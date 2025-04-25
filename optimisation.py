@@ -122,8 +122,8 @@ def traverse_pareto_page():
 
                 # Extract values
                 design_vars = design_info["Design Variables"].flatten()
-                pred_cr = design_info["Predicted CR"].item()
-                pred_sr = design_info["Predicted SR"].item()
+                pred_dp = design_info["Predicted DP"].item()
+                pred_tr = design_info["Predicted TR"].item()
 
                 # Format the output strings exactly as requested
                 optimal_design_str = (
