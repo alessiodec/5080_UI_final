@@ -142,7 +142,7 @@ def traverse_pareto_page():
                 # Format the output strings exactly as requested
                 optimal_design_str = (
                     f"**Optimal Design:** pH = {design_vars[0]:.4f}, "
-                    f"T = {design_vars[1]:.2f} (°C), "
+                    f"T = {design_vars[1]:.2f} (K), "
                     f"PCO₂ = {design_vars[2]:.2f} (Pa), "
                     f"v = {design_vars[3]:.4f} (m/s), "
                     f"d = {design_vars[4]:.4f} (m)"
@@ -150,7 +150,7 @@ def traverse_pareto_page():
 
                 predicted_outputs_str = (
                     f"**Predicted Outputs:** CR = {pred_cr:.4f} (mm/year), "
-                    f"SR = {pred_sr:.4f} (-)"
+                    f"SR = {pred_sr:.4f}"
                 )
 
                 # Display the formatted strings using st.markdown
