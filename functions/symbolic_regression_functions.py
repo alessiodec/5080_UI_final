@@ -181,7 +181,7 @@ def run_evolution_experiment(dataset_choice, output_var, population_size, popula
                 evolution_progress.progress(progress_percent, text=f"Evolution Progress: Iteration {i+1}/{number_of_iterations}")
 
                 # Update the plot dynamically
-                fig, ax = plt.subplots()
+                fig, ax = plt.subplots(figsize=(3.8, 2.9))
                 ax.plot(iterations, avg_fitness_arr, 'bo-', label="Avg Fitness")
                 ax.plot(iterations, avg_complexity_arr, 'ro-', label="Avg Complexity")
                 ax.plot(iterations, best_fitness_arr, 'go-', label="Best Fitness")
