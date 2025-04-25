@@ -88,20 +88,13 @@ def traverse_pareto_page():
     This page allows you to explore the Pareto front of the multi-objective optimisation.
 
     **Preference Slider:**
-    Use the slider below to set your preference between Sensitivity (left) and CR (right).
-    Minimise Sensitivty Preference: Lower sensitivities indicate a more robust design, less sensitive to input changed
-    Minimise CR Preference: Minimal corrosion rate, pipe lasts longer and degrades slower
-    Move the slider to adjust your preference between Sensitivity (robustness) and CR (corrosion rate).
+    Use the slider below to set your preference between Sensitivity (left) and CR (right).\n
+    Minimise Sensitivty Preference: Lower sensitivities indicate a more robust design, less sensitive to input changes\n
+    Minimise CR Preference: Minimal corrosion rate, pipe lasts longer and degrades slower\n
+    Move the slider to adjust your preference between Sensitivity (robustness) and CR (corrosion rate).\n
 
-    - At the left end (0.0), the weights are (1, 0), meaning full preference for Sensitivity and none for CR.
-    - At the right end (1.0), the weights are (0, 1), meaning full preference for CR and none for Sensitivity.
-    - For values in between, the weight vector is (1 - slider_value, slider_value).
-    - **At 0.0:** Full preference for Sensitivity (weight vector: [1, 0]).
-    - **At 1.0:** Full preference for CR (weight vector: [0, 1]).
-    - Values in between yield a weighted vector (1 - slider_value, slider_value).
-
-    After adjusting the slider, press the **"Plot Pareto Front"** button to confirm your selection.
-    After adjusting the slider, press the **"Plot Pareto Front"** button to update the graph and display the corresponding design details.
+    After adjusting the slider, press the **"Plot Pareto Front"** button to confirm / update your selection and display the corresponding design.
+    
     """)
 
     # --- Using user's original slider ---
