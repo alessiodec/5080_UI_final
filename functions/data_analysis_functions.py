@@ -134,11 +134,13 @@ def plot_5x5_cr(X, scaler_X, cr_model):
                 predictions_scaled = cr_model.predict(grid_points_scaled)
                 # Handle potential 1D or 2D (N, 1) output from model predict
                 if predictions_scaled.ndim == 1:
+                    # Ensure reshape has correct dimensions
                     corrosion_rate = predictions_scaled.reshape(grid_x.shape)
-                elif predictions_scaled.shape[1] >= 1:
+                elif predictions_scaled.ndim == 2 and predictions_scaled.shape[1] >= 1:
                     # Assume first column is the target if multiple are returned (or N,1)
                     if predictions_scaled.shape[1] > 1:
                          st.warning(f"Model prediction shape is {predictions_scaled.shape}. Assuming first column is corrosion rate.")
+                    # Ensure reshape has correct dimensions
                     corrosion_rate = predictions_scaled[:, 0].reshape(grid_x.shape)
                 else:
                     # Handle unexpected shape, maybe raise error or log warning
@@ -160,7 +162,6 @@ def plot_5x5_cr(X, scaler_X, cr_model):
         # Set the main title fontsize
         plt.suptitle('CR For Different Input Combinations', fontsize=40)
         st.pyplot(fig)
-
          
 # sr contour plot
 def plot_5x5_cr(X, scaler_X, cr_model):
