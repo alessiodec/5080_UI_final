@@ -140,7 +140,8 @@ def plot_5x5_cr(X, scaler_X, cr_model):
                 ax.set_ylabel(var_names[i])
         fig.subplots_adjust(right=0.9, hspace=0.4, wspace=0.4)
         cbar_ax = fig.add_axes([0.92, 0.15, 0.02, 0.7])
-        fig.colorbar(cont_fill, cax=cbar_ax, label='Scaled Corrosion Rate', fontsize=40)
+        fig.colorbar(cont_fill, cax=cbar_ax, label='Scaled Corrosion Rate')
+        cbar.ax.tick_params(labelsize=40)
         plt.suptitle('CR For Different Input Combinations', fontsize=40)
         st.pyplot(fig)
 
