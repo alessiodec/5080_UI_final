@@ -24,12 +24,13 @@ def optimisation_menu():
     # --- Using user's original description ---
     st.write("""
     **Optimisation methods:**
-    - Select desired diameter and CO₂ pressure, then minimise CR (SR ≤ 1).
+    **Minimise CR for Given d and PCO₂:** Specify the pipe diameter and CO₂ pressure; a differential evolution algorithm will optimise the remaining design variables.
     - This page allows you to minimise the corrosion rate by specifying the pipe diameter and CO₂ partial pressure.
+    - Select desired diameter and CO₂ pressure, then minimise CR (SR ≤ 1).
     - A differential evolution algorithm is used to optimise the remaining parameters while keeping some values fixed.
     - *Please wait up to one minute for each optimisation algorithm to be completed.*
-    - **Minimise CR for Given d and PCO₂:** Specify the pipe diameter and CO₂ pressure; a differential evolution algorithm will optimise the remaining design variables.
-    - **Traverse Pareto Front:** Explore trade-offs among Pareto‐optimal designs with a slider that sets your preference between minimising pressure drop or thermal resistance across a heatsink.
+    
+    **Traverse Pareto Front:** Explore trade-offs among Pareto‐optimal designs with a slider that sets your preference between minimising pressure drop or thermal resistance across a heatsink.
     """)
 
     # --- Using user's original buttons and logic ---
