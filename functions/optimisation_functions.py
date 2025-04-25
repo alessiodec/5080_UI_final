@@ -168,9 +168,9 @@ def plot_pareto_front_traverse(weight_sensitivity, weight_cr):
     plt.scatter(0.0008762, 0.04218847, label="Utopia Point", color="limegreen", marker="o", s=250)
     plt.scatter(advancedRobustProblemResultNSGAF[robustI, 0], advancedRobustProblemResultNSGAF[robustI, 1],
                 label="Optimum Design", color="limegreen", marker="x", s=200, linewidths=3)
-    plt.title("CR vs Sensitivity")
-    plt.ylabel("CR")
-    plt.xlabel(r"$\|\nabla CR\|$")
+    plt.title("Thermal Resistance Against Pressure Drop")
+    plt.ylabel(r"$R_th$")
+    plt.xlabel(r"$\Delta P$")
     plt.legend()
     plt.grid()
     return fig, robustI
