@@ -161,7 +161,7 @@ def findWeightedSolution(weights):
 def plot_pareto_front_traverse(weight_sensitivity, weight_cr):
     weights = np.array([weight_sensitivity, weight_cr])
     robustI = findWeightedSolution(weights)
-    plt.rcParams['font.size'] = 20
+    plt.rcParams['font.size'] = 50
     fig = plt.figure(figsize=(20, 10), dpi=300)
     plt.scatter(advancedRobustProblemResultNSGAF[:, 0], advancedRobustProblemResultNSGAF[:, 1],
                 facecolors='none', edgecolors="r", label="Pareto Front", marker="o")
